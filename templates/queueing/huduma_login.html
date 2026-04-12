@@ -1,0 +1,84 @@
+{% extends 'queueing/huduma_base.html' %}
+
+{% block title %}Huduma Login{% endblock %}
+{% block page_heading %}Huduma Kenya Simulation{% endblock %}
+{% block page_subheading %}Verify applicant details before booking a Huduma appointment.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 760px;">
+    <div class="card-title">
+        <h3>Service by Appointment</h3>
+        <span class="badge badge-blue">Huduma Kenya</span>
+    </div>
+
+    <p class="muted" style="margin-bottom: 20px;">
+        This page simulates the Huduma Kenya appointment verification stage.
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="grid-2">
+            <div>
+                <label for="national_id">National ID Number</label>
+                <input
+                    type="text"
+                    name="national_id"
+                    id="national_id"
+                    value="{{ applicant.national_id }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="first_name">First Name</label>
+                <input
+                    type="text"
+                    name="first_name"
+                    id="first_name"
+                    value="{{ applicant.full_name|cut:' '|truncatechars:20 }}"
+                    required
+                >
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="mother_first_name">Mother's First Name</label>
+                <input
+                    type="text"
+                    name="mother_first_name"
+                    id="mother_first_name"
+                    placeholder="Enter mother's first name"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="phone">Phone Number</label>
+                <input
+                    type="text"
+                    name="phone"
+                    id="phone"
+                    value="{{ applicant.phone_number }}"
+                    required
+                >
+            </div>
+        </div>
+
+        <label for="email">Email Address</label>
+        <input
+            type="email"
+            name="email"
+            id="email"
+            value="{{ applicant.email }}"
+            required
+        >
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Continue to Appointment Booking</button>
+            <a href="{% url 'applicant_dashboard' %}" class="btn btn-danger">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huduma Birth Queue System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+            color: #0f172a;
+        }
+
+        .hero-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 48px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #dbe5f0;
+        }
+
+        .brand h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: #0b3d91;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .topbar-actions a {
+            text-decoration: none;
+            margin-left: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .btn-outline {
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+            color: white;
+        }
+
+        .hero {
+            width: 92%;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 56px 0 40px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .hero-left h1 {
+            font-size: 52px;
+            line-height: 1.08;
+            margin: 0 0 18px;
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .hero-left p {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #475569;
+            margin: 0 0 28px;
+            max-width: 720px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .hero-actions a {
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        .btn-applicant {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-staff {
+            background: white;
+            color: #0f172a;
+            border: 1px solid #dbe5f0;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #e0ecff;
+            color: #1d4ed8;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .hero-right {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid #dbe5f0;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .hero-right h3 {
+            margin: 0 0 18px;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .journey-step {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 18px;
+            align-items: flex-start;
+        }
+
+        .step-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .step-content p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .sections {
+            width: 92%;
+            max-width: 1250px;
+            margin: 0 auto 50px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+
+        .info-card {
+            background: white;
+            border: 1px solid #dbe5f0;
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .info-card h3 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .info-card p {
+            margin: 0 0 18px;
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .info-card a {
+            text-decoration: none;
+            font-weight: 800;
+            color: #1d4ed8;
+        }
+
+        .footer-note {
+            width: 92%;
+            max-width: 1250px;
+            margin: 0 auto 40px;
+            background: #0f172a;
+            color: white;
+            border-radius: 22px;
+            padding: 24px;
+        }
+
+        .footer-note h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .footer-note p {
+            margin: 0;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1000px) {
+            .hero,
+            .sections {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-left h1 {
+                font-size: 40px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .topbar {
+                padding: 16px 18px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .hero {
+                padding: 36px 0 28px;
+            }
+
+            .hero-left h1 {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-shell">
+        <div class="topbar">
+            <div class="brand">
+                <h2>Huduma Birth Queue</h2>
+                <p>Smart Appointment Booking and Queue Tracking System</p>
+            </div>
+
+            <div class="topbar-actions">
+                <a href="{% url 'login' %}" class="btn-outline">Login</a>
+                <a href="{% url 'ecitizen_login' %}" class="btn-primary">Start Application</a>
+            </div>
+        </div>
+
+        <section class="hero">
+            <div class="hero-left">
+                <h1>Track your birth certificate service journey from application to queue.</h1>
+                <p>
+                    This platform simulates the full service flow for birth certificate issuance at Huduma Centre City Square,
+                    beginning with eCitizen application, continuing through Huduma appointment booking, and ending with live queue tracking and service delivery.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="{% url 'applicant_register' %}" class="btn-applicant">Applicant Sign Up</a>
+                    <a href="{% url 'login' %}" class="btn-applicant">Applicant Login</a>
+                    <a href="{% url 'login' %}" class="btn-staff">Staff Login</a>
+                </div>
+
+                <div class="hero-badges">
+                    <div class="badge">eCitizen Simulation</div>
+                    <div class="badge">Huduma Appointment</div>
+                    <div class="badge">Live Queue Tracking</div>
+                    <div class="badge">Staff Dashboard</div>
+                    <div class="badge">Reports & Analytics</div>
+                </div>
+            </div>
+
+            <div class="hero-right">
+                <h3>How the system works</h3>
+
+                <div class="journey-step">
+                    <div class="step-icon">1</div>
+                    <div class="step-content">
+                        <h4>Apply through eCitizen Simulation</h4>
+                        <p>Applicants begin the process by accessing the simulated eCitizen Civil Registration Services portal and submitting a birth certificate application.</p>
+                    </div>
+                </div>
+
+                <div class="journey-step">
+                    <div class="step-icon">2</div>
+                    <div class="step-content">
+                        <h4>Book through Huduma Kenya Simulation</h4>
+                        <p>After application, the applicant proceeds to the simulated Huduma appointment system to verify details and book a service date and time.</p>
+                    </div>
+                </div>
+
+                <div class="journey-step">
+                    <div class="step-icon">3</div>
+                    <div class="step-content">
+                        <h4>Track queue in real time</h4>
+                        <p>The applicant dashboard automatically generates a queue ticket from verified records and supports remote tracking, arrival confirmation, and live queue updates.</p>
+                    </div>
+                </div>
+
+                <div class="journey-step" style="margin-bottom: 0;">
+                    <div class="step-icon">4</div>
+                    <div class="step-content">
+                        <h4>Staff manage service delivery</h4>
+                        <p>Service officers monitor waiting applicants, call the next ticket, update service stages, and review operational reports and demand trends.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sections">
+            <div class="info-card">
+                <h3>Applicants</h3>
+                <p>
+                    Start your application journey, make a simulated payment, book a Huduma appointment, and track the queue from anywhere before arrival.
+                </p>
+                <a href="{% url 'login' %}">Continue as Applicant</a>
+            </div>
+
+            <div class="info-card">
+                <h3>Service Officers</h3>
+                <p>
+                    Manage waiting applicants, update ticket stages from waiting to completion, and monitor queue activity through a role-based dashboard.
+                </p>
+                <a href="{% url 'login' %}">Continue as Staff</a>
+            </div>
+
+            <div class="info-card">
+                <h3>Operational Oversight</h3>
+                <p>
+                    Review queue activity, wait times, ticket status patterns, and appointment demand through visual reporting and analytics tools.
+                </p>
+                <a href="{% url 'reports_dashboard' %}">View Reports</a>
+            </div>
+        </section>
+
+        <section class="footer-note">
+            <h3>Project Scope</h3>
+            <p>
+                This platform is designed around the birth certificate service flow for Huduma Centre City Square. It includes simulated eCitizen and Huduma Kenya modules for academic demonstration and a centre-level queue tracking system for service coordination and transparency.
+            </p>
+        </section>
+    </div>
+</body>
+</html>

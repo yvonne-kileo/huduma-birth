@@ -1,0 +1,56 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}eCitizen Application{% endblock %}
+{% block page_heading %}Civil Registration Application{% endblock %}
+{% block page_subheading %}Complete the simulated CRS application form before payment.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px;">
+    <div class="card-title">
+        <h3>Birth Certificate Application Form</h3>
+        <span class="badge badge-yellow">CRS Form</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="grid-2">
+            <div>
+                <label for="full_name">Applicant Name</label>
+                <input type="text" id="full_name" value="{{ applicant.full_name }}" readonly>
+            </div>
+            <div>
+                <label for="national_id">National ID</label>
+                <input type="text" id="national_id" value="{{ applicant.national_id }}" readonly>
+            </div>
+        </div>
+
+        <label for="service_category">Service Category</label>
+        <select name="service_category" id="service_category" required>
+            <option value="">Select service</option>
+            {% for category in service_categories %}
+                <option value="{{ category.id }}">{{ category }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="grid-2">
+            <div>
+                <label for="birth_notification_number">Birth Notification Number</label>
+                <input type="text" name="birth_notification_number" id="birth_notification_number" required>
+            </div>
+            <div>
+                <label for="father_name">Father's Name</label>
+                <input type="text" name="father_name" id="father_name" required>
+            </div>
+        </div>
+
+        <label for="mother_name">Mother's Name</label>
+        <input type="text" name="mother_name" id="mother_name" required>
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+            <a href="{% url 'crs_service_selection' %}" class="btn btn-danger">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Dashboard{% endblock %}
+{% block page_heading %}Staff Dashboard{% endblock %}
+{% block page_subheading %}Manage ticket movement from waiting to completion.{% endblock %}
+
+{% block content %}
+<div class="grid-3">
+    <div class="stat-box">
+        <span class="stat-label">Officer</span>
+        <div class="stat-value">{{ officer.full_name }}</div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Counter</span>
+        <div class="stat-value">{{ officer.counter_number }}</div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Role</span>
+        <div class="stat-value">{{ officer.role }}</div>
+    </div>
+</div>
+
+<div class="grid-3">
+    <div class="card">
+        <div class="card-title">
+            <h3>Waiting Queue</h3>
+            <span class="badge badge-blue">Waiting</span>
+        </div>
+        <div id="waiting-queue-section">
+            {% for ticket in waiting_tickets %}
+                <div class="soft-card" style="margin-bottom: 12px;">
+                    <div class="detail-value">{{ ticket.ticket_number }}</div>
+                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
+                    <a href="{% url 'call_next' ticket.id %}" class="btn btn-primary">Call</a>
+                </div>
+            {% empty %}
+                <p class="muted">No waiting applicants.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <h3>Called</h3>
+            <span class="badge badge-yellow">Called</span>
+        </div>
+        <div id="called-queue-section">
+            {% for ticket in called_tickets %}
+                <div class="soft-card" style="margin-bottom: 12px;">
+                    <div class="detail-value">{{ ticket.ticket_number }}</div>
+                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
+                    <a href="{% url 'start_service' ticket.id %}" class="btn btn-warning">Start Service</a>
+                </div>
+            {% empty %}
+                <p class="muted">No called applicants.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <h3>In Service</h3>
+            <span class="badge badge-green">In Service</span>
+        </div>
+        <div id="in-service-section">
+            {% for ticket in in_service_tickets %}
+                <div class="soft-card" style="margin-bottom: 12px;">
+                    <div class="detail-value">{{ ticket.ticket_number }}</div>
+                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
+                    <a href="{% url 'complete_service' ticket.id %}" class="btn btn-success">Complete</a>
+                </div>
+            {% empty %}
+                <p class="muted">No active services.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="btn-row">
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+
+<script>
+    function refreshStaffQueueData() {
+        fetch("{% url 'staff_queue_data' %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return;
+
+                let waitingHtml = '';
+                if (data.waiting_tickets.length > 0) {
+                    data.waiting_tickets.forEach(ticket => {
+                        waitingHtml += `
+                            <div class="soft-card" style="margin-bottom: 12px;">
+                                <div class="detail-value">${ticket.ticket_number}</div>
+                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
+                                <a href="/staff/call/${ticket.id}/" class="btn btn-primary">Call</a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    waitingHtml = '<p class="muted">No waiting applicants.</p>';
+                }
+                document.getElementById('waiting-queue-section').innerHTML = waitingHtml;
+
+                let calledHtml = '';
+                if (data.called_tickets.length > 0) {
+                    data.called_tickets.forEach(ticket => {
+                        calledHtml += `
+                            <div class="soft-card" style="margin-bottom: 12px;">
+                                <div class="detail-value">${ticket.ticket_number}</div>
+                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
+                                <a href="/staff/start/${ticket.id}/" class="btn btn-warning">Start Service</a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    calledHtml = '<p class="muted">No called applicants.</p>';
+                }
+                document.getElementById('called-queue-section').innerHTML = calledHtml;
+
+                let serviceHtml = '';
+                if (data.in_service_tickets.length > 0) {
+                    data.in_service_tickets.forEach(ticket => {
+                        serviceHtml += `
+                            <div class="soft-card" style="margin-bottom: 12px;">
+                                <div class="detail-value">${ticket.ticket_number}</div>
+                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
+                                <a href="/staff/complete/${ticket.id}/" class="btn btn-success">Complete</a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    serviceHtml = '<p class="muted">No active services.</p>';
+                }
+                document.getElementById('in-service-section').innerHTML = serviceHtml;
+            });
+    }
+
+    setInterval(refreshStaffQueueData, 5000);
+</script>
+{% endblock %}

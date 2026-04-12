@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports Dashboard{% endblock %}
+{% block page_heading %}Reports Dashboard{% endblock %}
+{% block page_subheading %}Operational analytics for applications, bookings, queue activity, and service flow.{% endblock %}
+
+{% block content %}
+<style>
+    .reports-hero {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .metric-card::after {
+        content: "";
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.08);
+    }
+
+    .metric-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .metric-sub {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .reports-main {
+        display: grid;
+        grid-template-columns: 1.05fr 1.35fr;
+        gap: 22px;
+        margin-bottom: 24px;
+    }
+
+    .analytics-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .analytics-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .analytics-title h3 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .analytics-chip {
+        background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .status-stack {
+        display: grid;
+        gap: 14px;
+    }
+
+    .status-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 18px;
+        padding: 18px 18px;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+    }
+
+    .status-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+    }
+
+    .dot-tracking { background: #94a3b8; }
+    .dot-waiting { background: #2563eb; }
+    .dot-called { background: #f59e0b; }
+    .dot-service { background: #06b6d4; }
+    .dot-completed { background: #16a34a; }
+
+    .status-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .status-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .chart-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .summary-box {
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 16px;
+    }
+
+    .summary-box-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .summary-box-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .bars-stage {
+        height: 260px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 10px 6px;
+        border-radius: 20px;
+        background:
+            linear-gradient(to top, rgba(148,163,184,0.08) 1px, transparent 1px);
+        background-size: 100% 52px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .bar-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: end;
+        gap: 10px;
+        height: 100%;
+    }
+
+    .bar-value {
+        font-size: 12px;
+        font-weight: 800;
+        color: #334155;
+        min-height: 18px;
+    }
+
+    .bar-track {
+        width: 100%;
+        max-width: 56px;
+        height: 180px;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+    }
+
+    .bar-fill {
+        width: 100%;
+        height: 0;
+        border-radius: 16px 16px 6px 6px;
+        background: linear-gradient(180deg, #60a5fa 0%, #2563eb 60%, #1d4ed8 100%);
+        box-shadow: 0 10px 18px rgba(37, 99, 235, 0.24);
+        transition: height 0.9s ease;
+    }
+
+    .bar-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .recent-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .recent-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .recent-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+    .recent-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    .recent-meta {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+
+    .empty-note {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+        .reports-hero,
+        .reports-main,
+        .recent-grid,
+        .chart-summary {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="reports-hero">
+    <div class="metric-card">
+        <span class="metric-label">Applications</span>
+        <div class="metric-value">{{ total_applications }}</div>
+        <div class="metric-sub">Total simulated eCitizen submissions</div>
+    </div>
+
+    <div class="metric-card">
+        <span class="metric-label">Appointments</span>
+        <div class="metric-value">{{ total_appointments }}</div>
+        <div class="metric-sub">Total Huduma bookings created</div>
+    </div>
+
+    <div class="metric-card">
+        <span class="metric-label">Queue Tickets</span>
+        <div class="metric-value">{{ total_tickets }}</div>
+        <div class="metric-sub">Total tickets generated for service flow</div>
+    </div>
+
+    <div class="metric-card">
+        <span class="metric-label">Average Wait</span>
+        <div class="metric-value">{{ avg_wait }}</div>
+        <div class="metric-sub">Average estimated waiting minutes</div>
+    </div>
+</div>
+
+<div class="reports-main">
+    <div class="analytics-panel">
+        <div class="analytics-title">
+            <h3>Queue Status Summary</h3>
+            <span class="analytics-chip">Live Queue View</span>
+        </div>
+
+        <div class="status-stack">
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-dot dot-tracking"></div>
+                    <div class="status-name">Tracking</div>
+                </div>
+                <div class="status-number">{{ tracking_tickets }}</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-dot dot-waiting"></div>
+                    <div class="status-name">Waiting</div>
+                </div>
+                <div class="status-number">{{ waiting_tickets }}</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-dot dot-called"></div>
+                    <div class="status-name">Called</div>
+                </div>
+                <div class="status-number">{{ called_tickets }}</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-dot dot-service"></div>
+                    <div class="status-name">In Service</div>
+                </div>
+                <div class="status-number">{{ in_service_tickets }}</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-dot dot-completed"></div>
+                    <div class="status-name">Completed</div>
+                </div>
+                <div class="status-number">{{ completed_tickets }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-panel">
+        <div class="analytics-title">
+            <h3>Peak Hour Metrics</h3>
+            <span class="analytics-chip">Demand Pattern</span>
+        </div>
+
+        <div class="chart-summary">
+            <div class="summary-box">
+                <span class="summary-box-label">Busiest Slot</span>
+                <div class="summary-box-value">{{ busiest_slot }}</div>
+            </div>
+
+            <div class="summary-box">
+                <span class="summary-box-label">Bookings in Peak Slot</span>
+                <div class="summary-box-value">{{ busiest_slot_count }}</div>
+            </div>
+        </div>
+
+        <div class="bars-stage">
+            {% for item in peak_hour_data %}
+                <div class="bar-col">
+                    <div class="bar-value">{{ item.count }}</div>
+                    <div class="bar-track">
+                        <div class="bar-fill" data-height="{{ item.percentage|floatformat:0 }}"></div>
+                    </div>
+                    <div class="bar-label">{{ item.hour }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="recent-panel">
+    <div class="analytics-title">
+        <h3>Recent Queue Tickets</h3>
+        <span class="analytics-chip">Latest Activity</span>
+    </div>
+
+    {% if recent_tickets %}
+        <div class="recent-grid">
+            {% for ticket in recent_tickets %}
+                <div class="recent-card">
+                    <div class="recent-title">{{ ticket.ticket_number }} - {{ ticket.applicant.full_name }}</div>
+                    <div class="recent-meta">Status: {{ ticket.get_current_status_display }}</div>
+                    <div class="recent-meta">Appointment Ref: {{ ticket.appointment.huduma_booking_ref }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-note">No ticket data available.</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const bars = document.querySelectorAll('.bar-fill');
+    bars.forEach(function (bar) {
+        const h = bar.getAttribute('data-height') || '0';
+        bar.style.height = h + '%';
+    });
+});
+</script>
+{% endblock %}

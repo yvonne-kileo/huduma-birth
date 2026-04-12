@@ -1,0 +1,34 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Civil Registration Services{% endblock %}
+{% block page_heading %}Civil Registration Services{% endblock %}
+{% block page_subheading %}Select the service you want to apply for through the simulated eCitizen portal.{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Available CRS Services</h3>
+        <span class="badge badge-yellow">CRS</span>
+    </div>
+
+    <div class="grid-3">
+        <div class="soft-card">
+            <div class="detail-label">Service</div>
+            <div class="detail-value" style="margin-bottom: 12px;">Birth Certificate</div>
+            <a href="{% url 'ecitizen_application_create' %}" class="btn btn-primary">Apply</a>
+        </div>
+
+        <div class="soft-card">
+            <div class="detail-label">Service</div>
+            <div class="detail-value" style="margin-bottom: 12px;">Late Birth Certificate</div>
+            <a href="{% url 'ecitizen_application_create' %}" class="btn btn-primary">Apply</a>
+        </div>
+
+        <div class="soft-card">
+            <div class="detail-label">Service</div>
+            <div class="detail-value" style="margin-bottom: 12px;">Change of Particulars</div>
+            <a href="{% url 'ecitizen_application_create' %}" class="btn btn-primary">Apply</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

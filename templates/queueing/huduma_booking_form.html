@@ -1,0 +1,98 @@
+{% extends 'queueing/huduma_base.html' %}
+
+{% block title %}Huduma Appointment Booking{% endblock %}
+{% block page_heading %}Huduma Appointment Booking{% endblock %}
+{% block page_subheading %}Book a visit to Huduma Centre City Square for birth certificate service.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 820px;">
+    <div class="card-title">
+        <h3>Appointment Booking Form</h3>
+        <span class="badge badge-green">Service by Appointment</span>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 18px;">
+        <div class="soft-card">
+            <span class="detail-label">Applicant</span>
+            <span class="detail-value">{{ applicant.full_name }}</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Linked Application Reference</span>
+            <span class="detail-value">{{ application.ecitizen_application_ref }}</span>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="grid-2">
+            <div>
+                <label for="service_category_display">Service Category</label>
+                <input
+                    type="text"
+                    id="service_category_display"
+                    value="Civil Registration Services"
+                    readonly
+                >
+            </div>
+
+            <div>
+                <label for="service_display">Service</label>
+                <input
+                    type="text"
+                    id="service_display"
+                    value="Issuance of Birth Certificate"
+                    readonly
+                >
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="centre_display">Huduma Centre</label>
+                <input
+                    type="text"
+                    id="centre_display"
+                    value="Huduma Centre City Square"
+                    readonly
+                >
+            </div>
+
+            <div>
+                <label for="appointment_date">Appointment Date</label>
+                <input
+                    type="date"
+                    name="appointment_date"
+                    id="appointment_date"
+                    required
+                >
+            </div>
+        </div>
+
+        <label for="appointment_time">Appointment Time</label>
+        <select name="appointment_time" id="appointment_time" required>
+            <option value="">Select time slot</option>
+            <option value="08:00">08:00 AM</option>
+            <option value="09:00">09:00 AM</option>
+            <option value="10:00">10:00 AM</option>
+            <option value="11:00">11:00 AM</option>
+            <option value="12:00">12:00 PM</option>
+            <option value="14:00">02:00 PM</option>
+            <option value="15:00">03:00 PM</option>
+            <option value="16:00">04:00 PM</option>
+        </select>
+
+        <div class="soft-card" style="margin-bottom: 20px;">
+            <span class="detail-label">Booking Note</span>
+            <span class="detail-value">
+                This simulation mirrors Huduma Kenya service-by-appointment flow for academic demonstration.
+            </span>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Book Appointment</button>
+            <a href="{% url 'huduma_login' %}" class="btn btn-danger">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

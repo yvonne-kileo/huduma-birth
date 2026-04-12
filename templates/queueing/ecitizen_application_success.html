@@ -1,0 +1,88 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Application Submitted{% endblock %}
+{% block page_heading %}Application Submitted{% endblock %}
+{% block page_subheading %}Your simulated eCitizen application has been created successfully.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 760px;">
+    <div class="card-title">
+        <h3>Application Success</h3>
+        <span class="badge">Submitted</span>
+    </div>
+
+    <div class="grid-2">
+        <div class="soft-card">
+            <span class="detail-label">Application Reference</span>
+            <span class="detail-value">{{ application.ecitizen_application_ref }}</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Invoice Number</span>
+            <span class="detail-value">{{ invoice_number }}</span>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 16px;">
+        <div class="soft-card">
+            <span class="detail-label">Receipt Number</span>
+            <span class="detail-value">{{ receipt_number }}</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Payment Method</span>
+            <span class="detail-value">{{ payment_method }}</span>
+        </div>
+    </div>
+
+    <div class="detail-list" style="margin-top: 18px;">
+        <div class="detail-item">
+            <span class="detail-label">Transaction Code</span>
+            <span class="detail-value">{{ transaction_code }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Phone / Account</span>
+            <span class="detail-value">{{ payment_phone }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Applicant</span>
+            <span class="detail-value">{{ application.applicant.full_name }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Service Category</span>
+            <span class="detail-value">{{ application.service_category }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Document Status</span>
+            <span class="detail-value">{{ application.document_status }}</span>
+        </div>
+    </div>
+
+    <div class="soft-card" style="margin-top: 20px;">
+        <span class="detail-label">Next Step</span>
+        <span class="detail-value">
+            You will be redirected to the Huduma Kenya appointment portal in <span id="countdown">5</span> seconds.
+        </span>
+    </div>
+
+    <div class="btn-row" style="margin-top: 20px;">
+        <a href="{% url 'huduma_login' %}" class="btn btn-primary">Continue to Huduma Appointment</a>
+        <a href="{% url 'ecitizen_login' %}" class="btn btn-secondary">Start Another eCitizen Session</a>
+    </div>
+</div>
+
+<script>
+let seconds = 5;
+const countdown = document.getElementById('countdown');
+
+const timer = setInterval(function () {
+    seconds -= 1;
+    if (countdown) {
+        countdown.textContent = seconds;
+    }
+
+    if (seconds <= 0) {
+        clearInterval(timer);
+        window.location.href = "{% url 'huduma_login' %}";
+    }
+}, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,608 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicant Dashboard{% endblock %}
+{% block page_heading %}Applicant Dashboard{% endblock %}
+{% block page_subheading %}Track your queue progress and service movement in real time.{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+    <div class="stat-box">
+        <span class="stat-label">Ticket Number</span>
+        <div class="stat-value" id="ticket-number">
+            {% if queue_ticket %}{{ queue_ticket.ticket_number }}{% else %}-{% endif %}
+        </div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Current Status</span>
+        <div class="stat-value" id="current-status">
+            {% if queue_ticket %}{{ queue_ticket.get_current_status_display }}{% else %}-{% endif %}
+        </div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Arrival Confirmed</span>
+        <div class="stat-value" id="arrival-confirmed">
+            {% if queue_ticket %}{{ queue_ticket.arrival_confirmed|yesno:"Yes,No" }}{% else %}-{% endif %}
+        </div>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Estimated Wait</span>
+        <div class="stat-value"><span id="wait-time">{% if queue_ticket %}{{ queue_ticket.estimated_wait_minutes }}{% else %}0{% endif %}</span> min</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">
+        <h3>Verification Summary</h3>
+        {% if verification_status %}
+            <span class="badge badge-green">Verified</span>
+        {% else %}
+            <span class="badge badge-red">Incomplete</span>
+        {% endif %}
+    </div>
+
+    <div class="grid-3">
+        <div class="soft-card">
+            <span class="detail-label">eCitizen Application Reference</span>
+            <span class="detail-value">
+                {% if application %}
+                    {{ application.ecitizen_application_ref }}
+                {% else %}
+                    Not available
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="soft-card">
+            <span class="detail-label">Huduma Booking Reference</span>
+            <span class="detail-value">
+                {% if appointment %}
+                    {{ appointment.huduma_booking_ref }}
+                {% else %}
+                    Not available
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="soft-card">
+            <span class="detail-label">Queue Ticket</span>
+            <span class="detail-value">
+                {% if queue_ticket %}
+                    {{ queue_ticket.ticket_number }}
+                {% else %}
+                    Not available
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="soft-card" style="margin-top: 18px;">
+        <span class="detail-label">Verification Note</span>
+        <span class="detail-value">
+            {% if verification_status %}
+                Queue access has been granted based on a verified simulated eCitizen application and a verified simulated Huduma appointment booking.
+            {% else %}
+                Complete the eCitizen and Huduma appointment stages to activate queue access.
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">
+            <h3>Applicant Details</h3>
+            <span class="badge badge-blue">Applicant</span>
+        </div>
+        <div class="detail-list">
+            <div class="detail-item">
+                <span class="detail-label">Logged in user</span>
+                <span class="detail-value">{{ request.user.username }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Full name</span>
+                <span class="detail-value">{{ applicant.full_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">National ID</span>
+                <span class="detail-value">{{ applicant.national_id }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Phone Number</span>
+                <span class="detail-value">{{ applicant.phone_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">{{ applicant.email }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <h3>Appointment Details</h3>
+            <span class="badge badge-green">Huduma Booking</span>
+        </div>
+        {% if appointment %}
+        <div class="detail-list">
+            <div class="detail-item">
+                <span class="detail-label">Booking Reference</span>
+                <span class="detail-value">{{ appointment.huduma_booking_ref }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Service Category</span>
+                <span class="detail-value">{{ appointment.service_category }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Appointment Date</span>
+                <span class="detail-value">{{ appointment.appointment_date }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Appointment Time</span>
+                <span class="detail-value">{{ appointment.appointment_time }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Booking Status</span>
+                <span class="detail-value">{{ appointment.booking_status }}</span>
+            </div>
+        </div>
+        {% else %}
+            <p class="muted">No appointment found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">
+        <h3>Application Details</h3>
+        <span class="badge badge-yellow">eCitizen Application</span>
+    </div>
+    {% if application %}
+    <div class="grid-3">
+        <div class="soft-card">
+            <span class="detail-label">Application Reference</span>
+            <span class="detail-value">{{ application.ecitizen_application_ref }}</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Document Status</span>
+            <span class="detail-value">{{ application.document_status }}</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Processing Status</span>
+            <span class="detail-value">{{ application.processing_status }}</span>
+        </div>
+    </div>
+    {% else %}
+        <p class="muted">No application found.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-title">
+        <h3>Queue Tracking</h3>
+        <span class="badge badge-blue">Live</span>
+    </div>
+    <p class="muted" style="margin-bottom: 16px;">
+    Your queue ticket is generated from your latest verified application and appointment records.
+    </p>
+
+    {% if queue_ticket %}
+        <div id="arrival-button-section" style="margin-bottom: 18px;">
+            {% if queue_ticket.current_status == 'tracking' and not queue_ticket.arrival_confirmed %}
+                <form method="POST" action="{% url 'confirm_arrival' queue_ticket.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Confirm Arrival</button>
+                </form>
+            {% endif %}
+        </div>
+
+        <div id="queue-message" style="margin-bottom: 18px;">
+            {% if queue_ticket.current_status == 'waiting' %}
+                <p><strong>You are now in the waiting queue.</strong></p>
+            {% elif queue_ticket.current_status == 'called' %}
+                <p><strong>You have been called. Proceed to the assigned counter.</strong></p>
+            {% elif queue_ticket.current_status == 'in_service' %}
+                <p><strong>Your request is currently being served.</strong></p>
+            {% elif queue_ticket.current_status == 'completed' %}
+                <p><strong>Your request has been completed.</strong></p>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="muted">No queue ticket found.</p>
+    {% endif %}
+</div>
+
+<div class="card premium-map-card-wrap">
+    <div class="tracker-floating-card">
+        <div class="tracker-floating-left">
+            <h3 style="margin: 0 0 6px 0;">Live Queue Tracker</h3>
+            <p style="margin: 0; color: #94a3b8;">Adaptive queue tracking for short and long queues.</p>
+        </div>
+        <div class="premium-status-pill" id="map-current-status">Tracking</div>
+    </div>
+
+    <div class="premium-stats-row">
+        <div class="premium-stat-box">
+            <span class="premium-stat-label">Your Position</span>
+            <span class="premium-stat-value" id="position">-</span>
+        </div>
+        <div class="premium-stat-box">
+            <span class="premium-stat-label">People Ahead</span>
+            <span class="premium-stat-value" id="people-ahead">-</span>
+        </div>
+        <div class="premium-stat-box">
+            <span class="premium-stat-label">Active Queue</span>
+            <span class="premium-stat-value" id="queue-total">-</span>
+        </div>
+        <div class="premium-stat-box">
+            <span class="premium-stat-label">Est. Wait</span>
+            <span class="premium-stat-value"><span id="wait-time-map">-</span> min</span>
+        </div>
+    </div>
+
+    <div class="premium-stage-strip">
+        <div class="premium-stage" id="stage-tracking">
+            <div class="premium-stage-dot"></div>
+            <span>Remote</span>
+        </div>
+        <div class="premium-stage" id="stage-arrival">
+            <div class="premium-stage-dot"></div>
+            <span>Arrival</span>
+        </div>
+        <div class="premium-stage" id="stage-waiting">
+            <div class="premium-stage-dot"></div>
+            <span>Waiting</span>
+        </div>
+        <div class="premium-stage" id="stage-counter">
+            <div class="premium-stage-dot"></div>
+            <span>Counter</span>
+        </div>
+        <div class="premium-stage" id="stage-completed">
+            <div class="premium-stage-dot"></div>
+            <span>Done</span>
+        </div>
+    </div>
+
+    <div id="small-queue-view">
+        <div class="delivery-map-shell">
+            <div class="delivery-map-grid"></div>
+
+            <svg class="delivery-route-svg" viewBox="0 0 900 260" preserveAspectRatio="none">
+                <path
+                    d="M70,180 C180,70 310,70 420,150 C520,225 670,215 800,105"
+                    fill="none"
+                    stroke="rgba(56,189,248,0.25)"
+                    stroke-width="18"
+                    stroke-linecap="round"
+                />
+                <path
+                    d="M70,180 C180,70 310,70 420,150 C520,225 670,215 800,105"
+                    fill="none"
+                    stroke="url(#routeGradient)"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                />
+                <defs>
+                    <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#334155"/>
+                        <stop offset="50%" stop-color="#38bdf8"/>
+                        <stop offset="100%" stop-color="#22c55e"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+
+            <div id="queue-stops" class="delivery-queue-stops"></div>
+
+            <div id="queue-marker" class="delivery-queue-marker">
+                <div class="delivery-marker-pulse"></div>
+                <div class="delivery-marker-core"></div>
+                <div class="delivery-marker-tag">YOU</div>
+            </div>
+
+            <div class="delivery-destination">
+                <div class="delivery-destination-pin"></div>
+                <div class="delivery-destination-card">
+                    <strong>Service Counter</strong>
+                    <span>Final destination</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="large-queue-view" style="display: none;">
+        <div class="band-queue-card">
+            <div class="band-queue-top">
+                <div>
+                    <div class="band-queue-label">Adaptive Live Queue</div>
+                    <div class="band-queue-title">
+                        You are <span id="band-position-text">-</span> in line
+                    </div>
+                </div>
+                <div class="band-queue-total" id="band-total-text">- total</div>
+            </div>
+
+            <div class="band-route-shell">
+                <div class="band-route-line"></div>
+
+                <div class="band-flow-layer">
+                    <span class="flow-dot flow-dot-1"></span>
+                    <span class="flow-dot flow-dot-2"></span>
+                    <span class="flow-dot flow-dot-3"></span>
+                </div>
+
+                <div id="band-segments" class="band-segments"></div>
+
+                <div id="band-you-marker" class="band-you-marker">
+                    <div class="band-you-pulse"></div>
+                    <div class="band-you-core"></div>
+                    <div class="band-you-tag">YOU</div>
+                </div>
+
+                <div class="band-counter">
+                    <div class="band-counter-pin"></div>
+                    <div class="band-counter-label">Counter</div>
+                </div>
+            </div>
+
+            <div class="band-queue-footer">
+                <div class="band-progress-wrap">
+                    <div class="band-progress-track">
+                        <div class="band-progress-fill" id="band-progress-fill"></div>
+                    </div>
+                </div>
+                <div class="band-note" id="band-note">
+                    Large queue mode is active.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-caption" class="premium-map-caption">
+        Live queue updates will appear here.
+    </div>
+</div>
+
+<div class="card">
+    <div class="btn-row">
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+
+<script>
+function setStageState(status) {
+    const stages = {
+        tracking: document.getElementById('stage-tracking'),
+        arrival: document.getElementById('stage-arrival'),
+        waiting: document.getElementById('stage-waiting'),
+        counter: document.getElementById('stage-counter'),
+        completed: document.getElementById('stage-completed')
+    };
+
+    Object.values(stages).forEach(stage => {
+        stage.classList.remove('active', 'current');
+    });
+
+    if (status === 'tracking') {
+        stages.tracking.classList.add('current');
+    } else if (status === 'waiting') {
+        stages.tracking.classList.add('active');
+        stages.arrival.classList.add('active');
+        stages.waiting.classList.add('current');
+    } else if (status === 'called' || status === 'in_service') {
+        stages.tracking.classList.add('active');
+        stages.arrival.classList.add('active');
+        stages.waiting.classList.add('active');
+        stages.counter.classList.add('current');
+    } else if (status === 'completed') {
+        stages.tracking.classList.add('active');
+        stages.arrival.classList.add('active');
+        stages.waiting.classList.add('active');
+        stages.counter.classList.add('active');
+        stages.completed.classList.add('current');
+    }
+}
+
+function getCurvePoint(t) {
+    const p0 = { x: 70,  y: 180 };
+    const p1 = { x: 180, y: 70  };
+    const p2 = { x: 310, y: 70  };
+    const p3 = { x: 420, y: 150 };
+    const p4 = { x: 520, y: 225 };
+    const p5 = { x: 670, y: 215 };
+    const p6 = { x: 800, y: 105 };
+
+    if (t <= 0.5) {
+        const tt = t / 0.5;
+        const x = Math.pow(1-tt,3)*p0.x + 3*Math.pow(1-tt,2)*tt*p1.x + 3*(1-tt)*Math.pow(tt,2)*p2.x + Math.pow(tt,3)*p3.x;
+        const y = Math.pow(1-tt,3)*p0.y + 3*Math.pow(1-tt,2)*tt*p1.y + 3*(1-tt)*Math.pow(tt,2)*p2.y + Math.pow(tt,3)*p3.y;
+        return { x, y };
+    } else {
+        const tt = (t - 0.5) / 0.5;
+        const x = Math.pow(1-tt,3)*p3.x + 3*Math.pow(1-tt,2)*tt*p4.x + 3*(1-tt)*Math.pow(tt,2)*p5.x + Math.pow(tt,3)*p6.x;
+        const y = Math.pow(1-tt,3)*p3.y + 3*Math.pow(1-tt,2)*tt*p4.y + 3*(1-tt)*Math.pow(tt,2)*p5.y + Math.pow(tt,3)*p6.y;
+        return { x, y };
+    }
+}
+
+function renderSmallQueueMap(data) {
+    const stopsContainer = document.getElementById('queue-stops');
+    const marker = document.getElementById('queue-marker');
+    const caption = document.getElementById('map-caption');
+
+    stopsContainer.innerHTML = '';
+
+    if (data.current_status === 'waiting' && data.queue_list.length > 0) {
+        const totalStops = data.queue_list.length;
+
+        data.queue_list.forEach((ticket, index) => {
+            const t = totalStops === 1 ? 0 : index / (totalStops - 1);
+            const point = getCurvePoint(t);
+
+            const stop = document.createElement('div');
+            stop.className = 'delivery-stop';
+            stop.style.left = `${point.x}px`;
+            stop.style.top = `${point.y}px`;
+
+            const dot = document.createElement('div');
+            dot.className = 'delivery-stop-dot';
+
+            if (index < data.people_ahead) {
+                dot.classList.add('ahead');
+            } else {
+                dot.classList.add('behind');
+            }
+
+            const label = document.createElement('div');
+            label.className = 'delivery-stop-label';
+            label.textContent = ticket.is_me ? 'You' : (index < data.people_ahead ? 'Ahead' : 'Behind');
+
+            stop.appendChild(dot);
+            stop.appendChild(label);
+            stopsContainer.appendChild(stop);
+        });
+
+        const myIndex = data.people_ahead;
+        const myT = totalStops === 1 ? 0 : myIndex / (totalStops - 1);
+        const myPoint = getCurvePoint(myT);
+
+        marker.style.left = `${myPoint.x}px`;
+        marker.style.top = `${myPoint.y}px`;
+
+        caption.textContent = 'Your live marker moves along the route as the queue advances toward the service counter.';
+    } else if (data.current_status === 'tracking') {
+        const point = getCurvePoint(0);
+        marker.style.left = `${point.x}px`;
+        marker.style.top = `${point.y}px`;
+        caption.textContent = 'You are tracking the queue remotely. Confirm arrival when you reach the centre.';
+    } else if (data.current_status === 'called') {
+        const point = getCurvePoint(1);
+        marker.style.left = `${point.x}px`;
+        marker.style.top = `${point.y}px`;
+        caption.textContent = 'You have been called. Proceed to the service counter now.';
+    } else if (data.current_status === 'in_service') {
+        const point = getCurvePoint(1);
+        marker.style.left = `${point.x}px`;
+        marker.style.top = `${point.y}px`;
+        caption.textContent = 'Your request is currently being served at the counter.';
+    } else if (data.current_status === 'completed') {
+        marker.style.left = `830px`;
+        marker.style.top = `95px`;
+        caption.textContent = 'Your service has been completed successfully.';
+    }
+}
+
+function renderLargeQueueView(data) {
+    const fill = document.getElementById('band-progress-fill');
+    const positionText = document.getElementById('band-position-text');
+    const totalText = document.getElementById('band-total-text');
+    const note = document.getElementById('band-note');
+    const segmentsContainer = document.getElementById('band-segments');
+    const marker = document.getElementById('band-you-marker');
+    const caption = document.getElementById('map-caption');
+
+    const total = data.queue_total || 0;
+    const position = data.position || 0;
+    const peopleAhead = data.people_ahead || 0;
+
+    positionText.textContent = position > 0 ? `${position} of ${total}` : '-';
+    totalText.textContent = `${total} total`;
+
+    const servedProgress = total > 0 && position > 0 ? ((total - position + 1) / total) * 100 : 0;
+    fill.style.width = `${servedProgress}%`;
+
+    const bandCount = total <= 25 ? 4 : 5;
+    const bandSize = total > 0 ? Math.ceil(total / bandCount) : 0;
+
+    segmentsContainer.innerHTML = '';
+
+    let currentBandIndex = 0;
+
+    for (let i = 0; i < bandCount; i++) {
+        const start = bandSize > 0 ? (i * bandSize) + 1 : 0;
+        const end = bandSize > 0 ? Math.min((i + 1) * bandSize, total) : 0;
+
+        const seg = document.createElement('div');
+        seg.className = 'band-segment';
+
+        if (position >= start && position <= end && start !== 0) {
+            seg.classList.add('current');
+            currentBandIndex = i;
+        } else if (position > end && end !== 0) {
+            seg.classList.add('active');
+        }
+
+        seg.innerHTML = `
+            <div class="band-segment-node"></div>
+            <div class="band-segment-range">${start && end ? `${start}-${end}` : '-'}</div>
+        `;
+
+        segmentsContainer.appendChild(seg);
+    }
+
+    const startX = window.innerWidth <= 900 ? 20 : 40;
+    const endX = window.innerWidth <= 900 ? (window.innerWidth - 80) : 760;
+    const step = bandCount > 1 ? (endX - startX) / (bandCount - 1) : 0;
+    const markerX = startX + (currentBandIndex * step);
+
+    marker.style.left = `${markerX}px`;
+
+    note.textContent = `There are ${peopleAhead} people ahead of you. Your live marker will move forward as the queue progresses through each band.`;
+    caption.textContent = 'Adaptive animated queue mode is active for a larger queue.';
+}
+
+function refreshApplicantQueueStatus() {
+    fetch("{% url 'applicant_queue_status' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) return;
+
+            document.getElementById('ticket-number').textContent = data.ticket_number || '-';
+            document.getElementById('current-status').textContent = data.current_status_display;
+            document.getElementById('arrival-confirmed').textContent = data.arrival_confirmed ? 'Yes' : 'No';
+            document.getElementById('wait-time').textContent = data.estimated_wait_minutes;
+            document.getElementById('wait-time-map').textContent = data.estimated_wait_minutes;
+            document.getElementById('position').textContent = data.position || '-';
+            document.getElementById('people-ahead').textContent = data.people_ahead ?? 0;
+            document.getElementById('queue-total').textContent = data.queue_total ?? 0;
+            document.getElementById('map-current-status').textContent = data.current_status_display;
+
+            setStageState(data.current_status);
+
+            const smallView = document.getElementById('small-queue-view');
+            const largeView = document.getElementById('large-queue-view');
+
+            if (data.large_queue_mode && data.current_status === 'waiting') {
+                smallView.style.display = 'none';
+                largeView.style.display = 'block';
+                renderLargeQueueView(data);
+            } else {
+                smallView.style.display = 'block';
+                largeView.style.display = 'none';
+                renderSmallQueueMap(data);
+            }
+
+            if (data.arrival_confirmed || data.current_status !== 'tracking') {
+                const btnSection = document.getElementById('arrival-button-section');
+                if (btnSection) btnSection.innerHTML = '';
+            }
+
+            let message = '';
+            if (data.current_status === 'waiting') {
+                message = '<p><strong>You are now in the waiting queue.</strong></p>';
+            } else if (data.current_status === 'called') {
+                message = '<p><strong>You have been called. Proceed to the assigned counter.</strong></p>';
+            } else if (data.current_status === 'in_service') {
+                message = '<p><strong>Your request is currently being served.</strong></p>';
+            } else if (data.current_status === 'completed') {
+                message = '<p><strong>Your request has been completed.</strong></p>';
+            }
+
+            const msg = document.getElementById('queue-message');
+            if (msg) msg.innerHTML = message;
+        })
+        .catch(error => console.log('Queue error:', error));
+}
+
+refreshApplicantQueueStatus();
+setInterval(refreshApplicantQueueStatus, 3000);
+</script>
+{% endblock %}
