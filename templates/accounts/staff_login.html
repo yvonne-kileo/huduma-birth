@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Login{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .topbar,
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .staff-login-page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+            radial-gradient(circle at var(--mx, 82%) var(--my, 18%), rgba(0, 122, 77, 0.13), transparent 28%),
+            linear-gradient(135deg, #f6f8fa 0%, #ffffff 48%, #eef8f2 100%);
+    }
+
+    .staff-login-card {
+        width: min(430px, 100%);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #e7edf0;
+        border-radius: 30px;
+        padding: 38px;
+        box-shadow: 0 28px 80px rgba(16, 24, 40, 0.12);
+        backdrop-filter: blur(18px);
+        opacity: 0;
+        transform: translateY(18px);
+        transition: 0.55s ease;
+    }
+
+    .staff-login-card.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .staff-brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .staff-mark {
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: grid;
+        place-items: center;
+        font-weight: 950;
+        font-size: 1.05rem;
+    }
+
+    .staff-brand-title {
+        color: #101828;
+        font-size: 1.18rem;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+
+    .staff-brand-subtitle {
+        margin-top: 5px;
+        color: #007a4d;
+        font-size: 0.86rem;
+        font-weight: 850;
+    }
+
+    .messages {
+        margin-bottom: 18px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .message-item {
+        border-radius: 15px;
+        padding: 12px 14px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        color: #9a3412;
+        font-size: 0.92rem;
+        font-weight: 850;
+        line-height: 1.45;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+    .form-group input {
+        width: 100%;
+        height: 58px;
+        border: 1px solid #dce6eb;
+        border-radius: 18px;
+        background: #ffffff;
+        color: #101828;
+        padding: 0 52px 0 16px;
+        font-size: 1rem;
+        font-weight: 750;
+        outline: none;
+        transition: 0.22s ease;
+    }
+
+    .form-group input::placeholder {
+        color: #98a2b3;
+        font-weight: 750;
+    }
+
+    .form-group input:focus {
+        border-color: #007a4d;
+        box-shadow: 0 0 0 4px rgba(0, 122, 77, 0.10);
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 40px;
+        padding: 0 13px;
+        border: none;
+        border-radius: 13px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.82rem;
+        font-weight: 950;
+        cursor: pointer;
+        transition: 0.22s ease;
+    }
+
+    .toggle-password:hover {
+        background: #dff4ea;
+    }
+
+    .submit-btn {
+        width: 100%;
+        height: 60px;
+        border: none;
+        border-radius: 18px;
+        background: #007a4d;
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: 0 18px 34px rgba(0, 122, 77, 0.23);
+        transition: 0.22s ease;
+        margin-top: 4px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 44px rgba(0, 122, 77, 0.28);
+    }
+
+    .submit-btn.loading {
+        pointer-events: none;
+        opacity: 0.88;
+    }
+
+    .submit-btn.loading::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        margin-left: 10px;
+        display: inline-block;
+        border: 3px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        vertical-align: middle;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 520px) {
+        .staff-login-page {
+            padding: 16px;
+        }
+
+        .staff-login-card {
+            padding: 30px 20px;
+            border-radius: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-login-page" id="staffLoginPage">
+    <div class="staff-login-card" id="staffLoginCard">
+        <div class="staff-brand">
+            <div class="staff-mark">HB</div>
+            <div>
+                <div class="staff-brand-title">Huduma Center</div>
+                <div class="staff-brand-subtitle">Staff Portal</div>
+            </div>
+        </div>
+
+        <form method="POST" id="staffLoginForm">
+            {% csrf_token %}
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message-item">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <input type="text" name="username" id="username" autocomplete="username" placeholder="Username" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" name="password" id="password" autocomplete="current-password" placeholder="Password" required>
+                <button type="button" class="toggle-password" id="togglePassword">Show</button>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const staffLoginPage = document.getElementById("staffLoginPage");
+    const staffLoginCard = document.getElementById("staffLoginCard");
+    const staffLoginForm = document.getElementById("staffLoginForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+
+    window.addEventListener("load", function () {
+        staffLoginCard.classList.add("show");
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        if (!staffLoginPage) return;
+
+        const x = Math.round((event.clientX / window.innerWidth) * 100);
+        const y = Math.round((event.clientY / window.innerHeight) * 100);
+
+        staffLoginPage.style.setProperty("--mx", x + "%");
+        staffLoginPage.style.setProperty("--my", y + "%");
+    });
+
+    togglePassword.addEventListener("click", function () {
+        const showing = passwordInput.type === "text";
+
+        passwordInput.type = showing ? "password" : "text";
+        togglePassword.textContent = showing ? "Show" : "Hide";
+    });
+
+    staffLoginForm.addEventListener("submit", function () {
+        submitBtn.classList.add("loading");
+        submitBtn.textContent = "Logging in";
+    });
+</script>
+{% endblock %}

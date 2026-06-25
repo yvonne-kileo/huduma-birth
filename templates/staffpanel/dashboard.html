@@ -1,144 +1,872 @@
 {% extends 'base.html' %}
 
 {% block title %}Staff Dashboard{% endblock %}
-{% block page_heading %}Staff Dashboard{% endblock %}
-{% block page_subheading %}Manage ticket movement from waiting to completion.{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
+
+{% block topbar_actions %}
+<div class="staff-top-user">{{ officer.full_name }}</div>
+<a href="{% url 'logout' %}" class="staff-logout-btn">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .staff-page {
+        min-height: 100vh;
+        padding: 24px;
+        background:
+            radial-gradient(circle at var(--mx, 85%) var(--my, 12%), rgba(0, 122, 77, 0.11), transparent 26%),
+            linear-gradient(135deg, #f6f8fa 0%, #ffffff 46%, #eef8f2 100%);
+    }
+
+    .staff-top-user,
+    .staff-logout-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.84rem;
+        font-weight: 950;
+        text-decoration: none;
+    }
+
+    .staff-logout-btn {
+        background: #007a4d;
+        color: #ffffff;
+        box-shadow: 0 12px 24px rgba(0, 122, 77, 0.18);
+    }
+
+    .staff-page-shell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 22px;
+        align-items: start;
+        width: 100%;
+    }
+
+    .staff-side-panel {
+        position: sticky;
+        top: 24px;
+        min-height: calc(100vh - 48px);
+        border-radius: 28px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #101828;
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16, 24, 40, 0.06);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+
+    .staff-side-panel::after {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        right: -82px;
+        bottom: -92px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.08);
+    }
+
+    .staff-brand {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 50px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 8px 20px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #edf2f4;
+    }
+
+    .staff-logo-circle {
+        width: 50px;
+        height: 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 17px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-weight: 950;
+    }
+
+    .staff-brand h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1rem;
+        line-height: 1.15;
+        font-weight: 950;
+    }
+
+    .staff-brand p {
+        margin: 5px 0 0;
+        color: #667085;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        font-weight: 650;
+    }
+
+    .staff-profile {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 14px;
+        border-radius: 20px;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+    }
+
+    .staff-avatar {
+        width: 52px;
+        height: 52px;
+        flex: 0 0 52px;
+        display: grid;
+        place-items: center;
+        border-radius: 17px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 1.2rem;
+        font-weight: 950;
+    }
+
+    .staff-profile strong {
+        display: block;
+        color: #101828;
+        font-size: 0.95rem;
+        font-weight: 950;
+    }
+
+    .staff-profile span {
+        display: block;
+        margin-top: 4px;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .staff-online {
+        color: #007a4d !important;
+        font-weight: 950 !important;
+    }
+
+    .staff-nav-links {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        gap: 9px;
+    }
+
+    .staff-nav-links a {
+        min-height: 48px;
+        padding: 0 15px;
+        border-radius: 16px;
+        color: #344054;
+        display: flex;
+        align-items: center;
+        font-size: 0.94rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .staff-nav-links a:hover,
+    .staff-nav-links a.active {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .staff-help-box {
+        position: relative;
+        z-index: 2;
+        margin-top: 34px;
+        padding: 18px;
+        border-radius: 20px;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+    }
+
+    .staff-help-box h4 {
+        margin: 0 0 8px;
+        color: #101828;
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .staff-help-box p {
+        margin: 0 0 14px;
+        color: #667085;
+        line-height: 1.6;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .staff-main {
+        display: grid;
+        gap: 22px;
+    }
+
+    .staff-intro,
+    .staff-summary-card,
+    .queue-card,
+    .staff-actions-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16, 24, 40, 0.06);
+        backdrop-filter: blur(18px);
+    }
+
+    .staff-intro {
+        position: relative;
+        overflow: hidden;
+        min-height: 230px;
+        border-radius: 30px;
+        padding: 34px;
+    }
+
+    .staff-intro::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -120px;
+        top: -140px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.09);
+    }
+
+    .staff-intro-inner {
+        position: relative;
+        z-index: 2;
+        max-width: 650px;
+    }
+
+    .staff-label {
+        color: #007a4d;
+        font-size: 0.78rem;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .staff-intro h1 {
+        margin: 12px 0 10px;
+        color: #101828;
+        font-size: clamp(2.2rem, 5vw, 4.4rem);
+        line-height: 0.98;
+        letter-spacing: -0.075em;
+        font-weight: 950;
+    }
+
+    .staff-intro p {
+        margin: 0;
+        max-width: 560px;
+        color: #667085;
+        font-size: 1.05rem;
+        line-height: 1.65;
+        font-weight: 650;
+    }
+
+    .staff-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .staff-summary-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 22px;
+        min-height: 126px;
+    }
+
+    .staff-summary-card::after {
+        content: "";
+        position: absolute;
+        right: -38px;
+        bottom: -48px;
+        width: 120px;
+        height: 120px;
+        border-radius: 34px;
+        background: #eaf8f1;
+        transform: rotate(-10deg);
+    }
+
+    .staff-summary-card span {
+        position: relative;
+        z-index: 2;
+        display: block;
+        margin-bottom: 12px;
+        color: #667085;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 950;
+    }
+
+    .staff-summary-card strong {
+        position: relative;
+        z-index: 2;
+        display: block;
+        color: #101828;
+        font-size: 1.45rem;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+        font-weight: 950;
+        word-break: break-word;
+    }
+
+    .queue-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .queue-card {
+        border-radius: 26px;
+        min-height: 260px;
+        overflow: hidden;
+    }
+
+    .queue-card-header {
+        padding: 20px;
+        border-bottom: 1px solid #edf2f4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #ffffff;
+    }
+
+    .queue-card-header h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.18rem;
+        letter-spacing: -0.04em;
+        font-weight: 950;
+    }
+
+    .staff-badge {
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.76rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .staff-badge-green {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .staff-badge-yellow {
+        background: #fff7ed;
+        color: #9a3412;
+    }
+
+    .staff-badge-blue {
+        background: #eaf3ff;
+        color: #175cd3;
+    }
+
+    .queue-card-body {
+        padding: 18px 20px 20px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .queue-item-card {
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+        border-radius: 20px;
+        padding: 16px;
+        transition: 0.22s ease;
+    }
+
+    .queue-item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(16, 24, 40, 0.06);
+        border-color: #dcefe6;
+    }
+
+    .queue-item-ticket {
+        color: #101828;
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .queue-item-name {
+        margin: 6px 0 14px;
+        color: #667085;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        font-weight: 700;
+    }
+
+    .staff-actions-card {
+        border-radius: 26px;
+        padding: 20px;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px !important;
+        border-radius: 15px !important;
+        border: none !important;
+        font-size: 0.86rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-primary {
+        background: #007a4d !important;
+        color: #ffffff !important;
+        box-shadow: 0 12px 24px rgba(0, 122, 77, 0.18);
+    }
+
+    .btn-success {
+        background: #16a34a !important;
+        color: #ffffff !important;
+    }
+
+    .btn-secondary {
+        background: #ffffff !important;
+        color: #007a4d !important;
+        border: 1px solid #dcefe6 !important;
+    }
+
+    .btn-warning {
+        background: #fff7ed !important;
+        color: #9a3412 !important;
+    }
+
+    .btn-danger {
+        background: #fee2e2 !important;
+        color: #b42318 !important;
+    }
+
+    .btn-danger:hover {
+        background: #b42318 !important;
+        color: #ffffff !important;
+    }
+
+    .btn.loading {
+        pointer-events: none;
+        opacity: 0.82;
+    }
+
+    .muted {
+        color: #667085;
+        line-height: 1.7;
+        font-weight: 650;
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: 0.55s ease;
+    }
+
+    .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .queue-refresh-note {
+        color: #667085;
+        font-size: 0.82rem;
+        font-weight: 800;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 1100px) {
+        .staff-page-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .staff-side-panel {
+            position: static;
+            min-height: auto;
+        }
+
+        .staff-brand,
+        .staff-profile,
+        .staff-help-box {
+            display: none;
+        }
+
+        .staff-nav-links {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .staff-nav-links::-webkit-scrollbar {
+            display: none;
+        }
+
+        .staff-nav-links a {
+            min-width: max-content;
+        }
+
+        .staff-summary-grid,
+        .queue-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 680px) {
+        .staff-page {
+            padding: 0;
+        }
+
+        .staff-page-shell,
+        .staff-main {
+            gap: 16px;
+        }
+
+        .staff-side-panel,
+        .staff-intro,
+        .queue-card,
+        .staff-actions-card {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+
+        .staff-side-panel {
+            padding: 12px;
+        }
+
+        .staff-intro {
+            min-height: auto;
+            padding: 28px 18px;
+        }
+
+        .staff-intro h1 {
+            font-size: 2.7rem;
+        }
+
+        .staff-summary-grid {
+            padding: 0 12px;
+        }
+
+        .staff-summary-card {
+            border-radius: 20px;
+        }
+
+        .queue-card-body,
+        .queue-card-header,
+        .staff-actions-card {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .btn-row .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="grid-3">
-    <div class="stat-box">
-        <span class="stat-label">Officer</span>
-        <div class="stat-value">{{ officer.full_name }}</div>
-    </div>
-    <div class="stat-box">
-        <span class="stat-label">Counter</span>
-        <div class="stat-value">{{ officer.counter_number }}</div>
-    </div>
-    <div class="stat-box">
-        <span class="stat-label">Role</span>
-        <div class="stat-value">{{ officer.role }}</div>
+<div class="staff-page" id="staffPage">
+    <div class="staff-page-shell">
+        <aside class="staff-side-panel reveal">
+            <div class="staff-brand">
+                <div class="staff-logo-circle">HB</div>
+                <div>
+                    <h3>Huduma Birth Queue</h3>
+                    <p>Smart Appointment & Queue System</p>
+                </div>
+            </div>
+
+            <div class="staff-profile">
+                <div class="staff-avatar">{{ officer.full_name|slice:":1" }}</div>
+                <div>
+                    <strong>{{ officer.full_name }}</strong>
+                    <span>{{ officer.role }}</span>
+                    <span class="staff-online">● Online</span>
+                </div>
+            </div>
+
+            <div class="staff-nav-links">
+                <a href="{% url 'staff_dashboard' %}" class="active">Dashboard</a>
+                <a href="{% url 'application_review_list' %}">Review Applications</a>
+                <a href="{% url 'reports_dashboard' %}">Reports</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+
+            
+        </aside>
+
+        <section class="staff-main">
+            <div class="staff-intro reveal">
+                <div class="staff-intro-inner">
+                    <div class="staff-label">Service Officer</div>
+                    <h1>Staff Dashboard</h1>
+                    <p>Manage ticket movement from waiting to service completion.</p>
+                </div>
+            </div>
+
+            <div class="staff-summary-grid">
+                <div class="staff-summary-card reveal">
+                    <span>Officer</span>
+                    <strong>{{ officer.full_name }}</strong>
+                </div>
+
+                <div class="staff-summary-card reveal">
+                    <span>Counter</span>
+                    <strong>{{ officer.counter_number }}</strong>
+                </div>
+
+                <div class="staff-summary-card reveal">
+                    <span>Role</span>
+                    <strong>{{ officer.role }}</strong>
+                </div>
+            </div>
+
+            <div class="queue-grid">
+                <div class="queue-card reveal">
+                    <div class="queue-card-header">
+                        <h3>Waiting Queue</h3>
+                        <span class="staff-badge staff-badge-green" id="waiting-count">Waiting</span>
+                    </div>
+
+                    <div class="queue-card-body" id="waiting-queue-section">
+                        {% for ticket in waiting_tickets %}
+                            <div class="queue-item-card">
+                                <div class="queue-item-ticket">{{ ticket.ticket_number }}</div>
+                                <div class="queue-item-name">{{ ticket.applicant.full_name }}</div>
+                                <a href="{% url 'call_next' ticket.id %}" class="btn btn-primary action-link">Call</a>
+                            </div>
+                        {% empty %}
+                            <p class="muted">No waiting applicants.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="queue-card reveal">
+                    <div class="queue-card-header">
+                        <h3>Called</h3>
+                        <span class="staff-badge staff-badge-yellow" id="called-count">Called</span>
+                    </div>
+
+                    <div class="queue-card-body" id="called-queue-section">
+                        {% for ticket in called_tickets %}
+                            <div class="queue-item-card">
+                                <div class="queue-item-ticket">{{ ticket.ticket_number }}</div>
+                                <div class="queue-item-name">{{ ticket.applicant.full_name }}</div>
+                                <a href="{% url 'start_service' ticket.id %}" class="btn btn-warning action-link">Start Service</a>
+                            </div>
+                        {% empty %}
+                            <p class="muted">No called applicants.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="queue-card reveal">
+                    <div class="queue-card-header">
+                        <h3>In Service</h3>
+                        <span class="staff-badge staff-badge-blue" id="service-count">In Service</span>
+                    </div>
+
+                    <div class="queue-card-body" id="in-service-section">
+                        {% for ticket in in_service_tickets %}
+                            <div class="queue-item-card">
+                                <div class="queue-item-ticket">{{ ticket.ticket_number }}</div>
+                                <div class="queue-item-name">{{ ticket.applicant.full_name }}</div>
+                                <a href="{% url 'complete_service' ticket.id %}" class="btn btn-success action-link">Complete</a>
+                            </div>
+                        {% empty %}
+                            <p class="muted">No active services.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            
+                <div class="queue-refresh-note" id="refresh-note">Queue refreshes automatically every 5 seconds.</div>
+        </section>
     </div>
 </div>
+{% endblock %}
 
-<div class="grid-3">
-    <div class="card">
-        <div class="card-title">
-            <h3>Waiting Queue</h3>
-            <span class="badge badge-blue">Waiting</span>
-        </div>
-        <div id="waiting-queue-section">
-            {% for ticket in waiting_tickets %}
-                <div class="soft-card" style="margin-bottom: 12px;">
-                    <div class="detail-value">{{ ticket.ticket_number }}</div>
-                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
-                    <a href="{% url 'call_next' ticket.id %}" class="btn btn-primary">Call</a>
-                </div>
-            {% empty %}
-                <p class="muted">No waiting applicants.</p>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">
-            <h3>Called</h3>
-            <span class="badge badge-yellow">Called</span>
-        </div>
-        <div id="called-queue-section">
-            {% for ticket in called_tickets %}
-                <div class="soft-card" style="margin-bottom: 12px;">
-                    <div class="detail-value">{{ ticket.ticket_number }}</div>
-                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
-                    <a href="{% url 'start_service' ticket.id %}" class="btn btn-warning">Start Service</a>
-                </div>
-            {% empty %}
-                <p class="muted">No called applicants.</p>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">
-            <h3>In Service</h3>
-            <span class="badge badge-green">In Service</span>
-        </div>
-        <div id="in-service-section">
-            {% for ticket in in_service_tickets %}
-                <div class="soft-card" style="margin-bottom: 12px;">
-                    <div class="detail-value">{{ ticket.ticket_number }}</div>
-                    <div class="muted" style="margin: 6px 0 12px;">{{ ticket.applicant.full_name }}</div>
-                    <a href="{% url 'complete_service' ticket.id %}" class="btn btn-success">Complete</a>
-                </div>
-            {% empty %}
-                <p class="muted">No active services.</p>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="btn-row">
-        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
-    </div>
-</div>
-
+{% block extra_js %}
 <script>
+    const staffPage = document.getElementById("staffPage");
+    const revealItems = document.querySelectorAll(".reveal");
+    const waitingCount = document.getElementById("waiting-count");
+    const calledCount = document.getElementById("called-count");
+    const serviceCount = document.getElementById("service-count");
+    const refreshNote = document.getElementById("refresh-note");
+
+    document.addEventListener("mousemove", function (event) {
+        if (!staffPage) return;
+
+        const x = Math.round((event.clientX / window.innerWidth) * 100);
+        const y = Math.round((event.clientY / window.innerHeight) * 100);
+
+        staffPage.style.setProperty("--mx", x + "%");
+        staffPage.style.setProperty("--my", y + "%");
+    });
+
+    const revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("show");
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach(function (item, index) {
+        item.style.transitionDelay = Math.min(index * 55, 350) + "ms";
+        revealObserver.observe(item);
+    });
+
+    function buildQueueItem(ticket, actionUrl, buttonText, buttonClass) {
+        return `
+            <div class="queue-item-card">
+                <div class="queue-item-ticket">${ticket.ticket_number}</div>
+                <div class="queue-item-name">${ticket.applicant__full_name}</div>
+                <a href="${actionUrl}" class="btn ${buttonClass} action-link">${buttonText}</a>
+            </div>
+        `;
+    }
+
+    function attachActionLoading() {
+        document.querySelectorAll(".action-link").forEach(function (link) {
+            link.addEventListener("click", function () {
+                link.classList.add("loading");
+                link.textContent = "Processing";
+            });
+        });
+    }
+
+    function updateCounts(data) {
+        if (waitingCount) {
+            waitingCount.textContent = (data.waiting_tickets || []).length + " Waiting";
+        }
+
+        if (calledCount) {
+            calledCount.textContent = (data.called_tickets || []).length + " Called";
+        }
+
+        if (serviceCount) {
+            serviceCount.textContent = (data.in_service_tickets || []).length + " In Service";
+        }
+    }
+
     function refreshStaffQueueData() {
         fetch("{% url 'staff_queue_data' %}")
             .then(response => response.json())
             .then(data => {
                 if (data.error) return;
 
-                let waitingHtml = '';
+                let waitingHtml = "";
                 if (data.waiting_tickets.length > 0) {
                     data.waiting_tickets.forEach(ticket => {
-                        waitingHtml += `
-                            <div class="soft-card" style="margin-bottom: 12px;">
-                                <div class="detail-value">${ticket.ticket_number}</div>
-                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
-                                <a href="/staff/call/${ticket.id}/" class="btn btn-primary">Call</a>
-                            </div>
-                        `;
+                        waitingHtml += buildQueueItem(ticket, `/staff/call/${ticket.id}/`, "Call", "btn-primary");
                     });
                 } else {
                     waitingHtml = '<p class="muted">No waiting applicants.</p>';
                 }
-                document.getElementById('waiting-queue-section').innerHTML = waitingHtml;
 
-                let calledHtml = '';
+                let calledHtml = "";
                 if (data.called_tickets.length > 0) {
                     data.called_tickets.forEach(ticket => {
-                        calledHtml += `
-                            <div class="soft-card" style="margin-bottom: 12px;">
-                                <div class="detail-value">${ticket.ticket_number}</div>
-                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
-                                <a href="/staff/start/${ticket.id}/" class="btn btn-warning">Start Service</a>
-                            </div>
-                        `;
+                        calledHtml += buildQueueItem(ticket, `/staff/start/${ticket.id}/`, "Start Service", "btn-warning");
                     });
                 } else {
                     calledHtml = '<p class="muted">No called applicants.</p>';
                 }
-                document.getElementById('called-queue-section').innerHTML = calledHtml;
 
-                let serviceHtml = '';
+                let serviceHtml = "";
                 if (data.in_service_tickets.length > 0) {
                     data.in_service_tickets.forEach(ticket => {
-                        serviceHtml += `
-                            <div class="soft-card" style="margin-bottom: 12px;">
-                                <div class="detail-value">${ticket.ticket_number}</div>
-                                <div class="muted" style="margin: 6px 0 12px;">${ticket.applicant__full_name}</div>
-                                <a href="/staff/complete/${ticket.id}/" class="btn btn-success">Complete</a>
-                            </div>
-                        `;
+                        serviceHtml += buildQueueItem(ticket, `/staff/complete/${ticket.id}/`, "Complete", "btn-success");
                     });
                 } else {
                     serviceHtml = '<p class="muted">No active services.</p>';
                 }
-                document.getElementById('in-service-section').innerHTML = serviceHtml;
+
+                document.getElementById("waiting-queue-section").innerHTML = waitingHtml;
+                document.getElementById("called-queue-section").innerHTML = calledHtml;
+                document.getElementById("in-service-section").innerHTML = serviceHtml;
+
+                updateCounts(data);
+                attachActionLoading();
+
+                if (refreshNote) {
+                    const now = new Date();
+                    refreshNote.textContent = "Last refreshed at " + now.toLocaleTimeString();
+                }
+            })
+            .catch(error => {
+                console.log("Staff queue error:", error);
+
+                if (refreshNote) {
+                    refreshNote.textContent = "Could not refresh queue. Retrying...";
+                }
             });
     }
 
+    document.querySelectorAll(".staff-nav-links a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            document.querySelectorAll(".staff-nav-links a").forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+            link.classList.add("active");
+        });
+    });
+
+    attachActionLoading();
+    refreshStaffQueueData();
     setInterval(refreshStaffQueueData, 5000);
 </script>
 {% endblock %}

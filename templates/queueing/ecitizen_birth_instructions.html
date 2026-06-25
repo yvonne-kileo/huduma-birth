@@ -1,0 +1,73 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Instructions{% endblock %}
+{% block page_subheading %}Read first.{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Instructions</h3>
+        <span class="badge">Step 1 of 6</span>
+    </div>
+
+    <div class="detail-list">
+        <div class="detail-item">
+            <span class="detail-label">Use</span>
+            <span class="detail-value">For births with a hospital notification.</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Parent / Guardian</span>
+            <span class="detail-value">Use parent or guardian account for applicants below 18 years.</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Timing</span>
+            <span class="detail-value">Apply at least 30 days after birth.</span>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 18px;">
+        <div class="soft-card">
+            <span class="detail-label">Steps</span>
+            <ol style="margin: 10px 0 0;">
+                <li>Fill form</li>
+                <li>Upload documents</li>
+                <li>Pay</li>
+                <li>Wait for feedback</li>
+            </ol>
+        </div>
+
+        <div class="soft-card">
+            <span class="detail-label">Requirements</span>
+            <ol style="margin: 10px 0 0;">
+                <li>Birth notification</li>
+                <li>ID for applicants above 18</li>
+                <li>Parent ID</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="grid-3" style="margin-top: 18px;">
+        <div class="soft-card">
+            <span class="detail-label">Without Amendment</span>
+            <span class="detail-value">KES 200</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">With Amendment</span>
+            <span class="detail-value">KES 1000</span>
+        </div>
+        <div class="soft-card">
+            <span class="detail-label">Access Fee</span>
+            <span class="detail-value">KES 50</span>
+        </div>
+    </div>
+
+    
+
+    <form method="POST" style="margin-top: 20px;">
+        {% csrf_token %}
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

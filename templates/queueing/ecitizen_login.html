@@ -1,19 +1,13 @@
 {% extends 'queueing/ecitizen_base.html' %}
 
-{% block title %}eCitizen Login{% endblock %}
-{% block page_heading %}eCitizen Simulation{% endblock %}
-{% block page_subheading %}Sign in to access Civil Registration Services.{% endblock %}
+{% block title %}Login{% endblock %}
+{% block page_subheading %}Login{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 520px; margin: 0 auto;">
+<div class="card" style="max-width: 560px; margin: 0 auto;">
     <div class="card-title">
-        <h3>Login with eCitizen</h3>
-        <span class="badge badge-blue">Simulation</span>
+        <h3>Login</h3>
     </div>
-
-    <p class="muted" style="margin-bottom: 20px;">
-        Use your National ID and the demo password to continue.
-    </p>
 
     <form method="POST">
         {% csrf_token %}
@@ -23,7 +17,6 @@
             type="text"
             name="national_id"
             id="national_id"
-            placeholder="Enter your national ID"
             value="{{ applicant.national_id }}"
             required
         >
@@ -33,18 +26,11 @@
             type="password"
             name="password"
             id="password"
-            placeholder="Enter eCitizen password"
             required
         >
 
-        <div class="soft-card" style="margin-bottom: 16px;">
-            <span class="detail-label">Demo Password</span>
-            <span class="detail-value">ecitizen123</span>
-        </div>
-
         <div class="btn-row">
-            <button type="submit" class="btn btn-primary">Login to eCitizen</button>
-            <a href="{% url 'applicant_dashboard' %}" class="btn btn-danger">Cancel</a>
+            <button type="submit" class="btn btn-primary">Continue</button>
         </div>
     </form>
 </div>

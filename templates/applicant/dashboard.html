@@ -1,373 +1,1650 @@
 {% extends 'base.html' %}
 
 {% block title %}Applicant Dashboard{% endblock %}
-{% block page_heading %}Applicant Dashboard{% endblock %}
-{% block page_subheading %}Track your queue progress and service movement in real time.{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .dashboard-page {
+        min-height: 100vh;
+        padding: 24px;
+        background:
+            radial-gradient(circle at var(--mx, 85%) var(--my, 10%), rgba(0, 122, 77, 0.11), transparent 26%),
+            linear-gradient(135deg, #f6f8fa, #ffffff, #eef8f2);
+    }
+
+    .dashboard-wrap {
+        display: grid;
+        gap: 22px;
+        width: 100%;
+    }
+
+    .dashboard-top {
+        min-height: 82px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid #e7edf0;
+        border-radius: 26px;
+        padding: 18px 22px;
+        box-shadow: 0 16px 40px rgba(16,24,40,0.07);
+        backdrop-filter: blur(18px);
+    }
+
+    .brand-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-mark {
+        width: 50px;
+        height: 50px;
+        border-radius: 17px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: grid;
+        place-items: center;
+        font-weight: 950;
+    }
+
+    .brand-title {
+        color: #101828;
+        font-size: 1.15rem;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+
+    .brand-subtitle {
+        margin-top: 5px;
+        color: #007a4d;
+        font-size: 0.85rem;
+        font-weight: 850;
+    }
+
+    .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .user-pill,
+    .logout-btn {
+        min-height: 46px;
+        padding: 0 16px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 950;
+        text-decoration: none;
+    }
+
+    .user-pill {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .logout-btn {
+        background: #007a4d;
+        color: #ffffff;
+        box-shadow: 0 12px 24px rgba(0,122,77,0.18);
+    }
+    .notification-wrapper {
+    position: relative;
+    }
+
+    .notification-nav-btn {
+        position: relative;
+        height: 46px;
+        padding: 0 22px;
+        border: 1px solid #dce6eb;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #007a4d;
+        font-size: 0.95rem;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+        transition: 0.22s ease;
+    }
+
+    .notification-nav-btn:hover {
+        transform: translateY(-2px);
+        background: #eaf8f1;
+        box-shadow: 0 16px 34px rgba(16, 24, 40, 0.12);
+    }
+
+    .notification-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        min-width: 23px;
+        height: 23px;
+        padding: 0 7px;
+        border-radius: 999px;
+        background: #dc2626;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: 950;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #ffffff;
+    }
+
+    .notification-dropdown {
+        position: absolute;
+        top: 58px;
+        right: 0;
+        width: 380px;
+        max-height: 450px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1px solid #e7edf0;
+        border-radius: 24px;
+        box-shadow: 0 24px 70px rgba(16, 24, 40, 0.18);
+        padding: 14px;
+        z-index: 9999;
+        display: none;
+    }
+
+    .notification-dropdown.show {
+        display: block;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 4px 4px 14px;
+        border-bottom: 1px solid #edf1f3;
+        margin-bottom: 10px;
+    }
+
+    .notification-header strong {
+        color: #101828;
+        font-size: 1.05rem;
+        font-weight: 950;
+    }
+
+    .notification-header p {
+        margin: 4px 0 0;
+        color: #667085;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .notification-header button {
+        border: none;
+        background: #eaf8f1;
+        color: #007a4d;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        font-weight: 950;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .notification-item {
+        padding: 13px;
+        border-radius: 17px;
+        background: #f8faf9;
+        border: 1px solid #edf1f3;
+        margin-bottom: 10px;
+    }
+
+    .notification-item.unread {
+        background: #eaf8f1;
+        border-color: rgba(0, 122, 77, 0.22);
+    }
+
+    .notification-item h4 {
+        margin: 0 0 6px;
+        color: #101828;
+        font-size: 0.93rem;
+        font-weight: 950;
+    }
+
+    .notification-item p {
+        margin: 0;
+        color: #667085;
+        font-size: 0.86rem;
+        line-height: 1.5;
+        font-weight: 650;
+    }
+
+    .notification-time {
+        display: block;
+        margin-top: 8px;
+        color: #98a2b3;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+
+    .empty-notification {
+        margin: 0;
+        padding: 18px;
+        color: #667085;
+        font-weight: 750;
+        text-align: center;
+    }
+
+    @media (max-width: 640px) {
+        .notification-dropdown {
+            position: fixed;
+            top: 82px;
+            right: 16px;
+            left: 16px;
+            width: auto;
+    }
+
+    .notification-nav-btn {
+        padding: 0 16px;
+        font-size: 0.88rem;
+    }
+    }
+
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .side-nav {
+        position: sticky;
+        top: 24px;
+        min-height: calc(100vh - 130px);
+        background: rgba(255,255,255,0.92);
+        border: 1px solid #e7edf0;
+        border-radius: 28px;
+        padding: 18px;
+        box-shadow: 0 16px 38px rgba(16,24,40,0.06);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+
+    .side-nav::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        bottom: -90px;
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        background: rgba(0,122,77,0.08);
+    }
+
+    .side-brand {
+        position: relative;
+        z-index: 2;
+        padding: 10px 8px 18px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #edf2f4;
+    }
+
+    .side-brand small {
+        color: #007a4d;
+        font-size: 0.74rem;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .side-brand h3 {
+        margin: 10px 0 8px;
+        color: #101828;
+        font-size: 1.8rem;
+        line-height: 1;
+        letter-spacing: -0.06em;
+        font-weight: 950;
+    }
+
+    .side-brand p {
+        margin: 0;
+        color: #667085;
+        font-size: 0.92rem;
+        line-height: 1.55;
+        font-weight: 650;
+    }
+
+    .side-nav-links {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        gap: 9px;
+    }
+
+    .side-nav-links a {
+        min-height: 48px;
+        padding: 0 15px;
+        border-radius: 16px;
+        color: #344054;
+        display: flex;
+        align-items: center;
+        font-size: 0.94rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .side-nav-links a:hover,
+    .side-nav-links a.active {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .dashboard-main {
+        display: grid;
+        gap: 22px;
+    }
+
+    .hero-card,
+    .stat-box,
+    .info-card,
+    .queue-card,
+    .note-box {
+        background: rgba(255,255,255,0.92);
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16,24,40,0.06);
+        backdrop-filter: blur(18px);
+    }
+
+    .hero-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 30px;
+        padding: 34px;
+        min-height: 205px;
+    }
+
+    .hero-card::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        top: -100px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: rgba(0,122,77,0.09);
+    }
+
+    .hero-card h1 {
+        position: relative;
+        z-index: 2;
+        margin: 0;
+        color: #101828;
+        font-size: clamp(2.1rem, 5vw, 4.5rem);
+        line-height: 0.98;
+        letter-spacing: -0.075em;
+        font-weight: 950;
+    }
+
+    .hero-card h1 span {
+        color: #007a4d;
+    }
+
+    .hero-card p {
+        position: relative;
+        z-index: 2;
+        margin: 14px 0 0;
+        color: #667085;
+        font-size: 1.05rem;
+        line-height: 1.65;
+        font-weight: 650;
+        max-width: 680px;
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: 0.55s ease;
+    }
+
+    .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    .stat-box {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        min-height: 126px;
+        padding: 22px;
+    }
+
+    .stat-box::after {
+        content: "";
+        position: absolute;
+        right: -38px;
+        bottom: -48px;
+        width: 120px;
+        height: 120px;
+        border-radius: 34px;
+        background: #eaf8f1;
+        transform: rotate(-10deg);
+    }
+
+    .stat-label {
+        position: relative;
+        z-index: 2;
+        display: block;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 950;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+        position: relative;
+        z-index: 2;
+        color: #101828;
+        font-size: 1.45rem;
+        line-height: 1.15;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+        word-break: break-word;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+    }
+
+    .info-card,
+    .queue-card,
+    .note-box {
+        border-radius: 26px;
+        padding: 26px;
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card-title h3,
+    .queue-title h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.35rem;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+    }
+
+    .badge-soft {
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.82rem;
+        font-weight: 950;
+    }
+
+    .detail-list {
+        display: grid;
+        gap: 0;
+    }
+
+    .detail-item {
+        display: grid;
+        grid-template-columns: 145px 1fr;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #edf2f4;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: #667085;
+        font-size: 0.86rem;
+        font-weight: 950;
+    }
+
+    .detail-value {
+        color: #101828;
+        font-size: 0.98rem;
+        font-weight: 850;
+        line-height: 1.55;
+    }
+
+    .muted {
+        color: #667085;
+        line-height: 1.65;
+        font-weight: 650;
+    }
+
+    .queue-card {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .queue-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 26px;
+        border-bottom: 1px solid #edf2f4;
+        background:
+            radial-gradient(circle at 92% 18%, rgba(0,122,77,0.08), transparent 28%),
+            #ffffff;
+    }
+
+    .queue-title p {
+        margin: 8px 0 0;
+        color: #667085;
+        line-height: 1.55;
+        font-weight: 650;
+    }
+
+    .queue-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .status-pill {
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.84rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .queue-body {
+        padding: 26px;
+        display: grid;
+        gap: 22px;
+    }
+
+    .queue-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .queue-stat {
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+        border-radius: 20px;
+        padding: 18px;
+        min-height: 112px;
+    }
+
+    .queue-stat span {
+        display: block;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 950;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .queue-stat strong {
+        color: #101828;
+        font-size: 1.75rem;
+        font-weight: 950;
+        letter-spacing: -0.05em;
+    }
+
+    .stage-strip {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+    }
+
+    .premium-stage {
+        text-align: center;
+        padding: 16px 10px;
+        border-radius: 18px;
+        border: 1px solid #e7edf0;
+        background: #ffffff;
+        transition: 0.25s ease;
+    }
+
+    .premium-stage span {
+        display: block;
+        margin-top: 9px;
+        color: #667085;
+        font-size: 0.82rem;
+        font-weight: 850;
+    }
+
+    .premium-stage-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin: 0 auto;
+        background: #d0d5dd;
+    }
+
+    .premium-stage.active {
+        background: #f4fbf7;
+        border-color: #dcefe6;
+    }
+
+    .premium-stage.active .premium-stage-dot,
+    .premium-stage.current .premium-stage-dot {
+        background: #007a4d;
+    }
+
+    .premium-stage.current {
+        background: #eaf8f1;
+        border-color: #007a4d;
+        box-shadow: 0 10px 24px rgba(0,122,77,0.10);
+        transform: translateY(-2px);
+    }
+
+    .premium-stage.current .premium-stage-dot {
+        box-shadow: 0 0 0 8px rgba(0,122,77,0.10);
+    }
+
+    .route-shell {
+        position: relative;
+        min-height: 300px;
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at 20% 30%, rgba(0,122,77,0.08), transparent 24%),
+            linear-gradient(135deg, #f9fbfc, #eef8f2);
+        border: 1px solid #e7edf0;
+        overflow: hidden;
+    }
+
+    .route-line {
+        position: absolute;
+        left: 10%;
+        right: 12%;
+        top: 58%;
+        border-top: 5px dashed #007a4d;
+        opacity: 0.8;
+    }
+
+    .route-step {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        background: #ffffff;
+        border: 1px solid #e7edf0;
+        border-radius: 16px;
+        padding: 12px 14px;
+        min-width: 92px;
+        text-align: center;
+        box-shadow: 0 12px 25px rgba(16,24,40,0.07);
+        color: #101828;
+        font-weight: 950;
+        font-size: 0.82rem;
+    }
+
+    .counter-box {
+        position: absolute;
+        right: 6%;
+        top: 37%;
+        width: 130px;
+        min-height: 110px;
+        border-radius: 20px;
+        background: #007a4d;
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 16px;
+        box-shadow: 0 16px 32px rgba(0,122,77,0.18);
+    }
+
+    .counter-box strong {
+        display: block;
+        line-height: 1.2;
+    }
+
+    .counter-box span {
+        display: block;
+        margin-top: 6px;
+        color: rgba(255,255,255,0.76);
+        font-size: 0.78rem;
+        font-weight: 950;
+    }
+
+    .delivery-queue-stops {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+    }
+
+    .delivery-stop {
+        position: absolute;
+        transform: translate(-50%, -50%);
+    }
+
+    .delivery-stop-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #d0d5dd;
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 0 2px rgba(0,122,77,0.10);
+    }
+
+    .delivery-stop-dot.ahead {
+        background: #007a4d;
+    }
+
+    .delivery-queue-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        z-index: 6;
+        transition: left 0.6s ease, top 0.6s ease;
+    }
+
+    .delivery-marker-pulse,
+    .band-you-pulse {
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(0,122,77,0.16);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: pulseMarker 1.7s infinite;
+    }
+
+    .delivery-marker-core,
+    .band-you-core {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #007a4d;
+        border: 3px solid #ffffff;
+        z-index: 3;
+    }
+
+    .delivery-marker-core.completed {
+        background: #16823d;
+    }
+
+    .delivery-marker-tag,
+    .band-you-tag {
+        margin-top: 8px;
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #007a4d;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .delivery-marker-tag.completed {
+        background: #16823d;
+    }
+
+    .band-queue-card {
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+        border-radius: 24px;
+        padding: 24px;
+    }
+
+    .band-queue-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+    .band-queue-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #667085;
+        font-weight: 950;
+    }
+
+    .band-queue-title {
+        margin-top: 6px;
+        font-size: 1.35rem;
+        font-weight: 950;
+        color: #101828;
+    }
+
+    .band-queue-total {
+        color: #667085;
+        font-weight: 850;
+    }
+
+    .band-route-shell {
+        position: relative;
+        min-height: 170px;
+    }
+
+    .band-route-line {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 80px;
+        height: 6px;
+        background: #dcefe6;
+        border-radius: 999px;
+    }
+
+    .band-flow-layer {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 74px;
+        height: 18px;
+    }
+
+    .flow-dot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(0,122,77,0.40);
+        animation: flowMove 5s linear infinite;
+    }
+
+    .flow-dot-2 {
+        animation-delay: 1.5s;
+    }
+
+    .flow-dot-3 {
+        animation-delay: 3s;
+    }
+
+    .band-segments {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 52px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .band-segment {
+        text-align: center;
+        flex: 1;
+    }
+
+    .band-segment-node {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid #dcefe6;
+        margin: 0 auto;
+    }
+
+    .band-segment.current .band-segment-node {
+        border-color: #007a4d;
+        background: #007a4d;
+        box-shadow: 0 0 0 8px rgba(0,122,77,0.10);
+    }
+
+    .band-segment.active .band-segment-node {
+        background: #4bb37c;
+        border-color: #4bb37c;
+    }
+
+    .band-segment-range {
+        margin-top: 12px;
+        font-size: 0.78rem;
+        color: #667085;
+        font-weight: 850;
+    }
+
+    .band-you-marker {
+        position: absolute;
+        top: 80px;
+        transform: translate(-50%, -50%);
+        z-index: 3;
+    }
+
+    .band-counter {
+        position: absolute;
+        right: 30px;
+        top: 64px;
+        text-align: center;
+    }
+
+    .band-counter-pin {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #007a4d;
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 0 4px rgba(0,122,77,0.18);
+        margin: 0 auto;
+    }
+
+    .band-counter-label {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #667085;
+        font-weight: 850;
+    }
+
+    .band-progress-track {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: #dcefe6;
+        overflow: hidden;
+    }
+
+    .band-progress-fill {
+        height: 100%;
+        width: 0;
+        border-radius: 999px;
+        background: #007a4d;
+        transition: width 0.6s ease;
+    }
+
+    .band-note,
+    .map-caption {
+        margin-top: 12px;
+        color: #667085;
+        line-height: 1.6;
+        font-size: 0.92rem;
+        font-weight: 650;
+    }
+
+    #queue-message p {
+        margin: 0;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-weight: 950;
+    }
+
+    .queue-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 18px;
+        align-items: stretch;
+        border-radius: 24px;
+        padding: 22px;
+        background: #007a4d;
+        color: #ffffff;
+    }
+
+    .summary-block {
+        border-right: 1px solid rgba(255,255,255,0.16);
+        padding-right: 18px;
+    }
+
+    .summary-block:last-child {
+        border-right: none;
+        padding-right: 0;
+    }
+
+    .queue-summary .detail-label {
+        display: block;
+        color: rgba(255,255,255,0.68);
+        font-size: 0.82rem;
+        font-weight: 950;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .queue-big-number {
+        font-size: 3rem;
+        line-height: 1;
+        color: #ffffff;
+        font-weight: 950;
+        letter-spacing: -0.06em;
+    }
+
+    .queue-summary p {
+        margin: 8px 0 0;
+        color: rgba(255,255,255,0.72);
+        font-weight: 700;
+    }
+
+    .confirm-arrival-btn {
+        width: 100%;
+        min-width: 190px;
+        height: 58px;
+        border: none;
+        border-radius: 18px;
+        background: #ffffff;
+        color: #007a4d;
+        font-size: 1rem;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    }
+
+    .note-box {
+        color: #101828;
+        border-left: 5px solid #007a4d;
+        font-weight: 850;
+    }
+
+    @keyframes pulseMarker {
+        0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+        50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+    }
+
+    @keyframes flowMove {
+        0% { left: 0%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { left: 100%; opacity: 0; }
+    }
+
+    @media (max-width: 1120px) {
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .side-nav {
+            position: static;
+            min-height: auto;
+        }
+
+        .side-brand {
+            display: none;
+        }
+
+        .side-nav-links {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .side-nav-links::-webkit-scrollbar {
+            display: none;
+        }
+
+        .side-nav-links a {
+            min-width: max-content;
+        }
+
+        .stat-grid,
+        .queue-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .queue-summary {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .summary-action {
+            grid-column: 1 / -1;
+        }
+
+        .stage-strip {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 680px) {
+        .dashboard-page {
+            padding: 0;
+        }
+
+        .dashboard-wrap,
+        .dashboard-main {
+            gap: 16px;
+        }
+
+        .dashboard-top,
+        .side-nav,
+        .hero-card,
+        .info-card,
+        .queue-card,
+        .note-box {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+
+        .dashboard-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .top-actions,
+        .user-pill,
+        .logout-btn {
+            width: 100%;
+        }
+
+        .user-pill,
+        .logout-btn {
+            justify-content: center;
+        }
+
+        .side-nav {
+            padding: 12px;
+        }
+
+        .hero-card {
+            min-height: auto;
+            padding: 28px 18px;
+        }
+
+        .hero-card h1 {
+            font-size: 2.7rem;
+        }
+
+        .stat-grid,
+        .queue-stats,
+        .stage-strip,
+        .queue-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .info-card,
+        .queue-top,
+        .queue-body,
+        .note-box {
+            padding: 22px 18px;
+        }
+
+        .detail-item {
+            grid-template-columns: 1fr;
+            gap: 5px;
+        }
+
+        .queue-top {
+            flex-direction: column;
+        }
+
+        .queue-pills {
+            justify-content: flex-start;
+        }
+
+        .route-shell {
+            min-height: 260px;
+        }
+
+        .route-step {
+            min-width: 74px;
+            padding: 10px;
+            font-size: 0.75rem;
+        }
+
+        .counter-box {
+            right: 4%;
+            width: 108px;
+            min-height: 94px;
+            font-size: 0.82rem;
+        }
+
+        .summary-block {
+            border-right: none;
+            border-bottom: 1px solid rgba(255,255,255,0.16);
+            padding-right: 0;
+            padding-bottom: 16px;
+        }
+
+        .summary-block:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        }
+        .invoice-actions {
+        margin-top: 20px;
+        }
+
+        .invoice-download-btn {
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 16px;
+            background: #007a4d;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 950;
+            text-decoration: none;
+            box-shadow: 0 14px 28px rgba(0, 122, 77, 0.18);
+            transition: 0.22s ease;
+        }
+
+        .invoice-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(0, 122, 77, 0.24);
+        }
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="notification-wrapper" id="notificationWrapper">
+    <button type="button" class="notification-nav-btn" id="notificationBell">
+        Notifications
+        <span class="notification-count" id="notificationCount" style="display: none;">0</span>
+    </button>
+
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <div>
+                <strong>Notifications</strong>
+                <p>Messages from Huduma Center</p>
+            </div>
+            <button type="button" id="markReadBtn">Mark all read</button>
+        </div>
+
+        <div class="notification-list" id="notificationList">
+            <p class="empty-notification">No notifications yet.</p>
+        </div>
+    </div>
+</div>
+
+<div class="badge badge-blue">{{ applicant.full_name }}</div>
+<a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+{% endblock %}
 
 {% block content %}
-<div class="stat-grid">
-    <div class="stat-box">
-        <span class="stat-label">Ticket Number</span>
-        <div class="stat-value" id="ticket-number">
-            {% if queue_ticket %}{{ queue_ticket.ticket_number }}{% else %}-{% endif %}
-        </div>
-    </div>
-    <div class="stat-box">
-        <span class="stat-label">Current Status</span>
-        <div class="stat-value" id="current-status">
-            {% if queue_ticket %}{{ queue_ticket.get_current_status_display }}{% else %}-{% endif %}
-        </div>
-    </div>
-    <div class="stat-box">
-        <span class="stat-label">Arrival Confirmed</span>
-        <div class="stat-value" id="arrival-confirmed">
-            {% if queue_ticket %}{{ queue_ticket.arrival_confirmed|yesno:"Yes,No" }}{% else %}-{% endif %}
-        </div>
-    </div>
-    <div class="stat-box">
-        <span class="stat-label">Estimated Wait</span>
-        <div class="stat-value"><span id="wait-time">{% if queue_ticket %}{{ queue_ticket.estimated_wait_minutes }}{% else %}0{% endif %}</span> min</div>
-    </div>
-</div>
+<div class="dashboard-page" id="dashboardPage">
+    <div class="dashboard-wrap">
+        
 
-<div class="card">
-    <div class="card-title">
-        <h3>Verification Summary</h3>
-        {% if verification_status %}
-            <span class="badge badge-green">Verified</span>
-        {% else %}
-            <span class="badge badge-red">Incomplete</span>
-        {% endif %}
-    </div>
-
-    <div class="grid-3">
-        <div class="soft-card">
-            <span class="detail-label">eCitizen Application Reference</span>
-            <span class="detail-value">
-                {% if application %}
-                    {{ application.ecitizen_application_ref }}
-                {% else %}
-                    Not available
-                {% endif %}
-            </span>
-        </div>
-
-        <div class="soft-card">
-            <span class="detail-label">Huduma Booking Reference</span>
-            <span class="detail-value">
-                {% if appointment %}
-                    {{ appointment.huduma_booking_ref }}
-                {% else %}
-                    Not available
-                {% endif %}
-            </span>
-        </div>
-
-        <div class="soft-card">
-            <span class="detail-label">Queue Ticket</span>
-            <span class="detail-value">
-                {% if queue_ticket %}
-                    {{ queue_ticket.ticket_number }}
-                {% else %}
-                    Not available
-                {% endif %}
-            </span>
-        </div>
-    </div>
-
-    <div class="soft-card" style="margin-top: 18px;">
-        <span class="detail-label">Verification Note</span>
-        <span class="detail-value">
-            {% if verification_status %}
-                Queue access has been granted based on a verified simulated eCitizen application and a verified simulated Huduma appointment booking.
-            {% else %}
-                Complete the eCitizen and Huduma appointment stages to activate queue access.
-            {% endif %}
-        </span>
-    </div>
-</div>
-
-<div class="grid-2">
-    <div class="card">
-        <div class="card-title">
-            <h3>Applicant Details</h3>
-            <span class="badge badge-blue">Applicant</span>
-        </div>
-        <div class="detail-list">
-            <div class="detail-item">
-                <span class="detail-label">Logged in user</span>
-                <span class="detail-value">{{ request.user.username }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Full name</span>
-                <span class="detail-value">{{ applicant.full_name }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">National ID</span>
-                <span class="detail-value">{{ applicant.national_id }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Phone Number</span>
-                <span class="detail-value">{{ applicant.phone_number }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Email</span>
-                <span class="detail-value">{{ applicant.email }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">
-            <h3>Appointment Details</h3>
-            <span class="badge badge-green">Huduma Booking</span>
-        </div>
-        {% if appointment %}
-        <div class="detail-list">
-            <div class="detail-item">
-                <span class="detail-label">Booking Reference</span>
-                <span class="detail-value">{{ appointment.huduma_booking_ref }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Service Category</span>
-                <span class="detail-value">{{ appointment.service_category }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Appointment Date</span>
-                <span class="detail-value">{{ appointment.appointment_date }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Appointment Time</span>
-                <span class="detail-value">{{ appointment.appointment_time }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Booking Status</span>
-                <span class="detail-value">{{ appointment.booking_status }}</span>
-            </div>
-        </div>
-        {% else %}
-            <p class="muted">No appointment found.</p>
-        {% endif %}
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-title">
-        <h3>Application Details</h3>
-        <span class="badge badge-yellow">eCitizen Application</span>
-    </div>
-    {% if application %}
-    <div class="grid-3">
-        <div class="soft-card">
-            <span class="detail-label">Application Reference</span>
-            <span class="detail-value">{{ application.ecitizen_application_ref }}</span>
-        </div>
-        <div class="soft-card">
-            <span class="detail-label">Document Status</span>
-            <span class="detail-value">{{ application.document_status }}</span>
-        </div>
-        <div class="soft-card">
-            <span class="detail-label">Processing Status</span>
-            <span class="detail-value">{{ application.processing_status }}</span>
-        </div>
-    </div>
-    {% else %}
-        <p class="muted">No application found.</p>
-    {% endif %}
-</div>
-
-<div class="card">
-    <div class="card-title">
-        <h3>Queue Tracking</h3>
-        <span class="badge badge-blue">Live</span>
-    </div>
-    <p class="muted" style="margin-bottom: 16px;">
-    Your queue ticket is generated from your latest verified application and appointment records.
-    </p>
-
-    {% if queue_ticket %}
-        <div id="arrival-button-section" style="margin-bottom: 18px;">
-            {% if queue_ticket.current_status == 'tracking' and not queue_ticket.arrival_confirmed %}
-                <form method="POST" action="{% url 'confirm_arrival' queue_ticket.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Confirm Arrival</button>
-                </form>
-            {% endif %}
-        </div>
-
-        <div id="queue-message" style="margin-bottom: 18px;">
-            {% if queue_ticket.current_status == 'waiting' %}
-                <p><strong>You are now in the waiting queue.</strong></p>
-            {% elif queue_ticket.current_status == 'called' %}
-                <p><strong>You have been called. Proceed to the assigned counter.</strong></p>
-            {% elif queue_ticket.current_status == 'in_service' %}
-                <p><strong>Your request is currently being served.</strong></p>
-            {% elif queue_ticket.current_status == 'completed' %}
-                <p><strong>Your request has been completed.</strong></p>
-            {% endif %}
-        </div>
-    {% else %}
-        <p class="muted">No queue ticket found.</p>
-    {% endif %}
-</div>
-
-<div class="card premium-map-card-wrap">
-    <div class="tracker-floating-card">
-        <div class="tracker-floating-left">
-            <h3 style="margin: 0 0 6px 0;">Live Queue Tracker</h3>
-            <p style="margin: 0; color: #94a3b8;">Adaptive queue tracking for short and long queues.</p>
-        </div>
-        <div class="premium-status-pill" id="map-current-status">Tracking</div>
-    </div>
-
-    <div class="premium-stats-row">
-        <div class="premium-stat-box">
-            <span class="premium-stat-label">Your Position</span>
-            <span class="premium-stat-value" id="position">-</span>
-        </div>
-        <div class="premium-stat-box">
-            <span class="premium-stat-label">People Ahead</span>
-            <span class="premium-stat-value" id="people-ahead">-</span>
-        </div>
-        <div class="premium-stat-box">
-            <span class="premium-stat-label">Active Queue</span>
-            <span class="premium-stat-value" id="queue-total">-</span>
-        </div>
-        <div class="premium-stat-box">
-            <span class="premium-stat-label">Est. Wait</span>
-            <span class="premium-stat-value"><span id="wait-time-map">-</span> min</span>
-        </div>
-    </div>
-
-    <div class="premium-stage-strip">
-        <div class="premium-stage" id="stage-tracking">
-            <div class="premium-stage-dot"></div>
-            <span>Remote</span>
-        </div>
-        <div class="premium-stage" id="stage-arrival">
-            <div class="premium-stage-dot"></div>
-            <span>Arrival</span>
-        </div>
-        <div class="premium-stage" id="stage-waiting">
-            <div class="premium-stage-dot"></div>
-            <span>Waiting</span>
-        </div>
-        <div class="premium-stage" id="stage-counter">
-            <div class="premium-stage-dot"></div>
-            <span>Counter</span>
-        </div>
-        <div class="premium-stage" id="stage-completed">
-            <div class="premium-stage-dot"></div>
-            <span>Done</span>
-        </div>
-    </div>
-
-    <div id="small-queue-view">
-        <div class="delivery-map-shell">
-            <div class="delivery-map-grid"></div>
-
-            <svg class="delivery-route-svg" viewBox="0 0 900 260" preserveAspectRatio="none">
-                <path
-                    d="M70,180 C180,70 310,70 420,150 C520,225 670,215 800,105"
-                    fill="none"
-                    stroke="rgba(56,189,248,0.25)"
-                    stroke-width="18"
-                    stroke-linecap="round"
-                />
-                <path
-                    d="M70,180 C180,70 310,70 420,150 C520,225 670,215 800,105"
-                    fill="none"
-                    stroke="url(#routeGradient)"
-                    stroke-width="8"
-                    stroke-linecap="round"
-                />
-                <defs>
-                    <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#334155"/>
-                        <stop offset="50%" stop-color="#38bdf8"/>
-                        <stop offset="100%" stop-color="#22c55e"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-
-            <div id="queue-stops" class="delivery-queue-stops"></div>
-
-            <div id="queue-marker" class="delivery-queue-marker">
-                <div class="delivery-marker-pulse"></div>
-                <div class="delivery-marker-core"></div>
-                <div class="delivery-marker-tag">YOU</div>
-            </div>
-
-            <div class="delivery-destination">
-                <div class="delivery-destination-pin"></div>
-                <div class="delivery-destination-card">
-                    <strong>Service Counter</strong>
-                    <span>Final destination</span>
+        <div class="dashboard-layout">
+            <aside class="side-nav reveal">
+                <div class="side-brand">
+                    <small>Applicant</small>
+                    <h3>Huduma<br>Birth Queue</h3>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div id="large-queue-view" style="display: none;">
-        <div class="band-queue-card">
-            <div class="band-queue-top">
-                <div>
-                    <div class="band-queue-label">Adaptive Live Queue</div>
-                    <div class="band-queue-title">
-                        You are <span id="band-position-text">-</span> in line
+                <div class="side-nav-links">
+                    <a href="{% url 'applicant_dashboard' %}" class="active">Dashboard</a>
+                    <a href="#application-section">Application</a>
+                    <a href="#appointment-section">Appointment</a>
+                    <a href="#queue-section">Live Queue</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </aside>
+
+            <main class="dashboard-main">
+                <section class="hero-card reveal">
+                    <h1>Hello, <span>{{ applicant.full_name }}</span></h1>
+                    <p>View your birth certificate application, Huduma appointment, and live queue progress.</p>
+                </section>
+
+                <section class="stat-grid">
+                    <div class="stat-box reveal">
+                        <span class="stat-label">Application</span>
+                        <div class="stat-value">
+                            {% if application_stage == 'submitted' %}Submitted
+                            {% elif application_stage == 'under_review' %}Review
+                            {% elif application_stage == 'verified' %}Verified
+                            {% elif application_stage == 'ready_for_appointment' %}Ready
+                            {% elif application_stage == 'incomplete' %}Incomplete
+                            {% elif application_stage == 'rejected' %}Rejected
+                            {% else %}None
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="band-queue-total" id="band-total-text">- total</div>
-            </div>
 
-            <div class="band-route-shell">
-                <div class="band-route-line"></div>
-
-                <div class="band-flow-layer">
-                    <span class="flow-dot flow-dot-1"></span>
-                    <span class="flow-dot flow-dot-2"></span>
-                    <span class="flow-dot flow-dot-3"></span>
-                </div>
-
-                <div id="band-segments" class="band-segments"></div>
-
-                <div id="band-you-marker" class="band-you-marker">
-                    <div class="band-you-pulse"></div>
-                    <div class="band-you-core"></div>
-                    <div class="band-you-tag">YOU</div>
-                </div>
-
-                <div class="band-counter">
-                    <div class="band-counter-pin"></div>
-                    <div class="band-counter-label">Counter</div>
-                </div>
-            </div>
-
-            <div class="band-queue-footer">
-                <div class="band-progress-wrap">
-                    <div class="band-progress-track">
-                        <div class="band-progress-fill" id="band-progress-fill"></div>
+                    <div class="stat-box reveal">
+                        <span class="stat-label">Visit Date</span>
+                        <div class="stat-value">{% if appointment %}{{ appointment.appointment_date }}{% else %}-{% endif %}</div>
                     </div>
+
+                    <div class="stat-box reveal">
+                        <span class="stat-label">Ticket</span>
+                        <div class="stat-value" id="ticket-number">{% if queue_ticket %}{{ queue_ticket.ticket_number }}{% else %}-{% endif %}</div>
+                    </div>
+
+                    <div class="stat-box reveal">
+                        <span class="stat-label">Queue Stage</span>
+                        <div class="stat-value" id="current-status">{% if queue_ticket %}{{ queue_ticket.get_current_status_display }}{% else %}-{% endif %}</div>
+                    </div>
+                </section>
+
+                <section class="info-grid">
+                <div class="info-card reveal" id="application-section">
+                    <div class="card-title">
+                        <h3>Application</h3>
+                        {% if application and application.review_notes %}
+                        <span class="badge-soft">Note</span>
+                        {% endif %}
+                    </div>
+
+                    {% if application %}
+                    <div class="detail-list">
+                        <div class="detail-item">
+                            <span class="detail-label">Reference</span>
+                            <span class="detail-value">{{ application.ecitizen_application_ref|default:"Draft" }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Invoice</span>
+                            <span class="detail-value">{{ invoice_number }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Receipt</span>
+                            <span class="detail-value">{{ receipt_number }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Type</span>
+                            <span class="detail-value">{{ application.get_type_of_application_display }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value">{{ application.get_processing_status_display }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Documents</span>
+                            <span class="detail-value">{{ application.get_document_status_display }}</span>
+                        </div>
+
+                        {% if application.review_notes %}
+                        <div class="detail-item">
+                            <span class="detail-label">Note</span>
+                            <span class="detail-value">{{ application.review_notes }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="invoice-actions">
+                        <a href="{% url 'download_application_invoice' application.id %}" class="invoice-download-btn">
+                             Download Invoice
+                        </a>
+                    </div>
+
+                    {% else %}
+                    <p class="muted">No application yet.</p>
+                    {% endif %}
+                    </div>   
+                    
+
+                    <div class="info-card reveal" id="appointment-section">
+                        <div class="card-title">
+                            <h3>Appointment</h3>
+                        </div>
+
+                        {% if appointment %}
+                        <div class="detail-list">
+                            <div class="detail-item">
+                                <span class="detail-label">Service</span>
+                                <span class="detail-value">{{ appointment.service_category }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Centre</span>
+                                <span class="detail-value">Huduma Centre City Square</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Date</span>
+                                <span class="detail-value">{{ appointment.appointment_date }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Time</span>
+                                <span class="detail-value">{{ appointment.appointment_time }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Reference</span>
+                                <span class="detail-value">{{ appointment.huduma_booking_ref }}</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="muted">No appointment yet.</p>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="queue-card reveal" id="queue-section">
+                    <div class="queue-top">
+                        <div class="queue-title">
+                            <h3>Live Queue</h3>
+                            <p>Track your movement to the service counter.</p>
+                        </div>
+
+                        <div class="queue-pills">
+                            <div class="status-pill" id="map-current-status">Tracking</div>
+                            <div class="status-pill" id="socket-status" style="background:#fee2e2;color:#991b1b;">Live: Connecting...</div>
+                        </div>
+                    </div>
+
+                    <div class="queue-body">
+                        <div class="queue-stats">
+                            <div class="queue-stat">
+                                <span>Position</span>
+                                <strong id="position">{% if queue_position %}{{ queue_position }}{% else %}-{% endif %}</strong>
+                            </div>
+                            <div class="queue-stat">
+                                <span>Ahead</span>
+                                <strong id="people-ahead">{% if people_ahead %}{{ people_ahead }}{% else %}0{% endif %}</strong>
+                            </div>
+                            <div class="queue-stat">
+                                <span>Queue</span>
+                                <strong id="queue-total">-</strong>
+                            </div>
+                            <div class="queue-stat">
+                                <span>Wait</span>
+                                <strong><span id="wait-time-map">{% if queue_ticket %}{{ queue_ticket.estimated_wait_minutes }}{% else %}-{% endif %}</span> min</strong>
+                            </div>
+                        </div>
+
+                        <div class="stage-strip">
+                            <div class="premium-stage" id="stage-tracking">
+                                <div class="premium-stage-dot"></div>
+                                <span>Tracking</span>
+                            </div>
+                            <div class="premium-stage" id="stage-arrival">
+                                <div class="premium-stage-dot"></div>
+                                <span>Arrival</span>
+                            </div>
+                            <div class="premium-stage" id="stage-waiting">
+                                <div class="premium-stage-dot"></div>
+                                <span>Waiting</span>
+                            </div>
+                            <div class="premium-stage" id="stage-counter">
+                                <div class="premium-stage-dot"></div>
+                                <span>Counter</span>
+                            </div>
+                            <div class="premium-stage" id="stage-completed">
+                                <div class="premium-stage-dot"></div>
+                                <span>Done</span>
+                            </div>
+                        </div>
+
+                        <div id="small-queue-view">
+                            <div class="route-shell">
+                                <div class="route-line"></div>
+
+                                <div class="route-step" style="left:12%; top:36%;">Track</div>
+                                <div class="route-step" style="left:34%; top:36%;">Arrive</div>
+                                <div class="route-step" style="left:56%; top:36%;">Wait</div>
+
+                                <div id="queue-stops" class="delivery-queue-stops"></div>
+
+                                <div id="queue-marker" class="delivery-queue-marker">
+                                    <div class="delivery-marker-pulse"></div>
+                                    <div class="delivery-marker-core"></div>
+                                    <div class="delivery-marker-tag">YOU</div>
+                                </div>
+
+                                <div class="counter-box" id="service-counter-destination">
+                                    <div>
+                                        <strong>Service<br>Counter</strong>
+                                        <span id="counter-status-text">Waiting</span>
+                                        <span id="counter-pill">WAITING</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="large-queue-view" style="display:none;">
+                            <div class="band-queue-card">
+                                <div class="band-queue-top">
+                                    <div>
+                                        <div class="band-queue-label">Queue</div>
+                                        <div class="band-queue-title">You are <span id="band-position-text">-</span></div>
+                                    </div>
+                                    <div class="band-queue-total" id="band-total-text">-</div>
+                                </div>
+
+                                <div class="band-route-shell">
+                                    <div class="band-route-line"></div>
+
+                                    <div class="band-flow-layer">
+                                        <span class="flow-dot flow-dot-1"></span>
+                                        <span class="flow-dot flow-dot-2"></span>
+                                        <span class="flow-dot flow-dot-3"></span>
+                                    </div>
+
+                                    <div id="band-segments" class="band-segments"></div>
+
+                                    <div id="band-you-marker" class="band-you-marker">
+                                        <div class="band-you-pulse"></div>
+                                        <div class="band-you-core"></div>
+                                        <div class="band-you-tag">YOU</div>
+                                    </div>
+
+                                    <div class="band-counter">
+                                        <div class="band-counter-pin"></div>
+                                        <div class="band-counter-label">Counter</div>
+                                    </div>
+                                </div>
+
+                                <div class="band-queue-footer">
+                                    <div class="band-progress-track">
+                                        <div class="band-progress-fill" id="band-progress-fill"></div>
+                                    </div>
+                                    <div class="band-note" id="band-note">Queue updates show here.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="queue-message"></div>
+                        <div id="map-caption" class="map-caption">Live queue route to service counter.</div>
+
+                        <div class="queue-summary">
+                            <div class="summary-block">
+                                <span class="detail-label">Position</span>
+                                <div class="queue-big-number" id="position-side">{% if queue_position %}{{ queue_position }}{% else %}-{% endif %}</div>
+                                <p id="people-ahead-text">
+                                    {% if people_ahead %}{{ people_ahead }} ahead{% else %}Updates show here.{% endif %}
+                                </p>
+                            </div>
+
+                            <div class="summary-block">
+                                <span class="detail-label">Wait</span>
+                                <div class="queue-big-number">
+                                    <span id="wait-time">{% if queue_ticket %}{{ queue_ticket.estimated_wait_minutes }}{% else %}-{% endif %}</span><span style="font-size:1.3rem;"> min</span>
+                                </div>
+                            </div>
+
+                            <div class="summary-action" id="arrival-button-section">
+                                {% if queue_ticket and queue_ticket.current_status == 'tracking' and not queue_ticket.arrival_confirmed %}
+                                <form method="POST" action="{% url 'confirm_arrival' queue_ticket.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="confirm-arrival-btn">Confirm Arrival</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="note-box reveal">
+                    Arrive 15 minutes early for your Huduma appointment.
                 </div>
-                <div class="band-note" id="band-note">
-                    Large queue mode is active.
-                </div>
-            </div>
+            </main>
         </div>
     </div>
-
-    <div id="map-caption" class="premium-map-caption">
-        Live queue updates will appear here.
-    </div>
 </div>
+{% endblock %}
 
-<div class="card">
-    <div class="btn-row">
-        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
-    </div>
-</div>
-
+{% block extra_js %}
 <script>
+const dashboardPage = document.getElementById("dashboardPage");
+const revealItems = document.querySelectorAll(".reveal");
+
+document.addEventListener("mousemove", function (event) {
+    if (!dashboardPage) return;
+    const x = Math.round((event.clientX / window.innerWidth) * 100);
+    const y = Math.round((event.clientY / window.innerHeight) * 100);
+    dashboardPage.style.setProperty("--mx", x + "%");
+    dashboardPage.style.setProperty("--my", y + "%");
+});
+
+const revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            revealObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.12 });
+
+revealItems.forEach(function (item, index) {
+    item.style.transitionDelay = Math.min(index * 55, 350) + "ms";
+    revealObserver.observe(item);
+});
+
 function setStageState(status) {
     const stages = {
         tracking: document.getElementById('stage-tracking'),
@@ -378,6 +1655,7 @@ function setStageState(status) {
     };
 
     Object.values(stages).forEach(stage => {
+        if (!stage) return;
         stage.classList.remove('active', 'current');
     });
 
@@ -401,93 +1679,128 @@ function setStageState(status) {
     }
 }
 
-function getCurvePoint(t) {
-    const p0 = { x: 70,  y: 180 };
-    const p1 = { x: 180, y: 70  };
-    const p2 = { x: 310, y: 70  };
-    const p3 = { x: 420, y: 150 };
-    const p4 = { x: 520, y: 225 };
-    const p5 = { x: 670, y: 215 };
-    const p6 = { x: 800, y: 105 };
+function getRoutePoints() {
+    return [
+        { x: 10, y: 58 },
+        { x: 24, y: 58 },
+        { x: 38, y: 58 },
+        { x: 52, y: 58 },
+        { x: 64, y: 58 },
+        { x: 74, y: 58 },
+        { x: 84, y: 58 },
+        { x: 88, y: 50 },
+        { x: 90, y: 44 },
+        { x: 90, y: 40 },
+        { x: 90, y: 38 }
+    ];
+}
 
-    if (t <= 0.5) {
-        const tt = t / 0.5;
-        const x = Math.pow(1-tt,3)*p0.x + 3*Math.pow(1-tt,2)*tt*p1.x + 3*(1-tt)*Math.pow(tt,2)*p2.x + Math.pow(tt,3)*p3.x;
-        const y = Math.pow(1-tt,3)*p0.y + 3*Math.pow(1-tt,2)*tt*p1.y + 3*(1-tt)*Math.pow(tt,2)*p2.y + Math.pow(tt,3)*p3.y;
-        return { x, y };
+function moveMarkerPercent(x, y) {
+    const marker = document.getElementById('queue-marker');
+    if (!marker) return;
+    marker.style.left = `${x}%`;
+    marker.style.top = `${y}%`;
+}
+
+function setCounterVisualState(mode) {
+    const statusText = document.getElementById('counter-status-text');
+    const pill = document.getElementById('counter-pill');
+    const markerCore = document.querySelector('#queue-marker .delivery-marker-core');
+    const markerTag = document.querySelector('#queue-marker .delivery-marker-tag');
+
+    if (!statusText || !pill || !markerCore || !markerTag) return;
+
+    markerCore.classList.remove('completed');
+    markerTag.classList.remove('completed');
+
+    if (mode === 'called') {
+        statusText.textContent = 'Proceed';
+        pill.textContent = 'NEXT';
+        markerTag.textContent = 'YOU';
+    } else if (mode === 'in_service') {
+        statusText.textContent = 'Now serving';
+        pill.textContent = 'SERVING';
+        markerTag.textContent = 'YOU';
+    } else if (mode === 'completed') {
+        statusText.textContent = 'Completed';
+        pill.textContent = 'DONE';
+        markerCore.classList.add('completed');
+        markerTag.classList.add('completed');
+        markerTag.textContent = 'DONE';
     } else {
-        const tt = (t - 0.5) / 0.5;
-        const x = Math.pow(1-tt,3)*p3.x + 3*Math.pow(1-tt,2)*tt*p4.x + 3*(1-tt)*Math.pow(tt,2)*p5.x + Math.pow(tt,3)*p6.x;
-        const y = Math.pow(1-tt,3)*p3.y + 3*Math.pow(1-tt,2)*tt*p4.y + 3*(1-tt)*Math.pow(tt,2)*p5.y + Math.pow(tt,3)*p6.y;
-        return { x, y };
+        statusText.textContent = 'Waiting';
+        pill.textContent = 'WAITING';
+        markerTag.textContent = 'YOU';
     }
 }
 
 function renderSmallQueueMap(data) {
     const stopsContainer = document.getElementById('queue-stops');
-    const marker = document.getElementById('queue-marker');
     const caption = document.getElementById('map-caption');
+    const points = getRoutePoints();
+
+    if (!stopsContainer || !caption) return;
 
     stopsContainer.innerHTML = '';
 
-    if (data.current_status === 'waiting' && data.queue_list.length > 0) {
-        const totalStops = data.queue_list.length;
+    if (data.current_status === 'tracking') {
+        moveMarkerPercent(points[0].x, points[0].y);
+        caption.textContent = 'Remote tracking.';
+        setCounterVisualState('default');
+        return;
+    }
 
-        data.queue_list.forEach((ticket, index) => {
-            const t = totalStops === 1 ? 0 : index / (totalStops - 1);
-            const point = getCurvePoint(t);
+    if (data.current_status === 'waiting') {
+        const totalAheadToShow = Math.min(data.people_ahead || 0, 6);
+
+        for (let i = 0; i < totalAheadToShow; i++) {
+            const point = points[6 - totalAheadToShow + i + 1] || points[6];
 
             const stop = document.createElement('div');
             stop.className = 'delivery-stop';
-            stop.style.left = `${point.x}px`;
-            stop.style.top = `${point.y}px`;
+            stop.style.left = `${point.x}%`;
+            stop.style.top = `${point.y}%`;
 
             const dot = document.createElement('div');
-            dot.className = 'delivery-stop-dot';
-
-            if (index < data.people_ahead) {
-                dot.classList.add('ahead');
-            } else {
-                dot.classList.add('behind');
-            }
-
-            const label = document.createElement('div');
-            label.className = 'delivery-stop-label';
-            label.textContent = ticket.is_me ? 'You' : (index < data.people_ahead ? 'Ahead' : 'Behind');
+            dot.className = 'delivery-stop-dot ahead';
 
             stop.appendChild(dot);
-            stop.appendChild(label);
             stopsContainer.appendChild(stop);
-        });
+        }
 
-        const myIndex = data.people_ahead;
-        const myT = totalStops === 1 ? 0 : myIndex / (totalStops - 1);
-        const myPoint = getCurvePoint(myT);
+        const myPointIndex = Math.max(3, 6 - totalAheadToShow);
+        const myPoint = points[myPointIndex];
+        moveMarkerPercent(myPoint.x, myPoint.y);
 
-        marker.style.left = `${myPoint.x}px`;
-        marker.style.top = `${myPoint.y}px`;
-
-        caption.textContent = 'Your live marker moves along the route as the queue advances toward the service counter.';
-    } else if (data.current_status === 'tracking') {
-        const point = getCurvePoint(0);
-        marker.style.left = `${point.x}px`;
-        marker.style.top = `${point.y}px`;
-        caption.textContent = 'You are tracking the queue remotely. Confirm arrival when you reach the centre.';
-    } else if (data.current_status === 'called') {
-        const point = getCurvePoint(1);
-        marker.style.left = `${point.x}px`;
-        marker.style.top = `${point.y}px`;
-        caption.textContent = 'You have been called. Proceed to the service counter now.';
-    } else if (data.current_status === 'in_service') {
-        const point = getCurvePoint(1);
-        marker.style.left = `${point.x}px`;
-        marker.style.top = `${point.y}px`;
-        caption.textContent = 'Your request is currently being served at the counter.';
-    } else if (data.current_status === 'completed') {
-        marker.style.left = `830px`;
-        marker.style.top = `95px`;
-        caption.textContent = 'Your service has been completed successfully.';
+        caption.textContent = 'Queue moving.';
+        setCounterVisualState('default');
+        return;
     }
+
+    if (data.current_status === 'called') {
+        moveMarkerPercent(points[8].x, points[8].y);
+        caption.textContent = 'Proceed to counter.';
+        setCounterVisualState('called');
+        return;
+    }
+
+    if (data.current_status === 'in_service') {
+        moveMarkerPercent(points[10].x, points[10].y);
+        caption.textContent = 'Now serving.';
+        setCounterVisualState('in_service');
+        return;
+    }
+
+    if (data.current_status === 'completed') {
+        moveMarkerPercent(points[10].x, points[10].y);
+        caption.textContent = 'Completed.';
+        setCounterVisualState('completed');
+        return;
+    }
+
+    moveMarkerPercent(points[0].x, points[0].y);
+    caption.textContent = 'Queue updates appear here.';
+    setCounterVisualState('default');
 }
 
 function renderLargeQueueView(data) {
@@ -498,6 +1811,8 @@ function renderLargeQueueView(data) {
     const segmentsContainer = document.getElementById('band-segments');
     const marker = document.getElementById('band-you-marker');
     const caption = document.getElementById('map-caption');
+
+    if (!fill || !positionText || !totalText || !note || !segmentsContainer || !marker || !caption) return;
 
     const total = data.queue_total || 0;
     const position = data.position || 0;
@@ -538,71 +1853,228 @@ function renderLargeQueueView(data) {
         segmentsContainer.appendChild(seg);
     }
 
-    const startX = window.innerWidth <= 900 ? 20 : 40;
-    const endX = window.innerWidth <= 900 ? (window.innerWidth - 80) : 760;
-    const step = bandCount > 1 ? (endX - startX) / (bandCount - 1) : 0;
-    const markerX = startX + (currentBandIndex * step);
+    const percentage = bandCount > 1 ? (currentBandIndex / (bandCount - 1)) * 100 : 0;
+    marker.style.left = `${percentage}%`;
 
-    marker.style.left = `${markerX}px`;
+    note.textContent = `${peopleAhead} ahead.`;
+    caption.textContent = 'Large queue mode.';
+}
 
-    note.textContent = `There are ${peopleAhead} people ahead of you. Your live marker will move forward as the queue progresses through each band.`;
-    caption.textContent = 'Adaptive animated queue mode is active for a larger queue.';
+function applyQueueData(data) {
+    if (data.error) return;
+
+    document.getElementById('ticket-number').textContent = data.ticket_number || '-';
+    document.getElementById('current-status').textContent = data.current_status_display || '-';
+    document.getElementById('wait-time').textContent = data.estimated_wait_minutes ?? '-';
+    document.getElementById('wait-time-map').textContent = data.estimated_wait_minutes ?? '-';
+    document.getElementById('position').textContent = data.position || '-';
+    document.getElementById('position-side').textContent = data.position || '-';
+    document.getElementById('people-ahead').textContent = data.people_ahead ?? 0;
+    document.getElementById('queue-total').textContent = data.queue_total ?? 0;
+    document.getElementById('map-current-status').textContent = data.current_status_display || '-';
+
+    const peopleAheadText = document.getElementById('people-ahead-text');
+    if (peopleAheadText) {
+        peopleAheadText.textContent = (data.people_ahead ?? 0) > 0 ? `${data.people_ahead} ahead` : 'Updates show here.';
+    }
+
+    setStageState(data.current_status);
+
+    const smallView = document.getElementById('small-queue-view');
+    const largeView = document.getElementById('large-queue-view');
+
+    if (data.large_queue_mode && data.current_status === 'waiting') {
+        smallView.style.display = 'none';
+        largeView.style.display = 'block';
+        renderLargeQueueView(data);
+    } else {
+        smallView.style.display = 'block';
+        largeView.style.display = 'none';
+        renderSmallQueueMap(data);
+    }
+
+    if (data.arrival_confirmed || data.current_status !== 'tracking') {
+        const btnSection = document.getElementById('arrival-button-section');
+        if (btnSection) btnSection.innerHTML = '';
+    }
+
+    let message = '';
+    if (data.current_status === 'waiting') {
+        message = '<p>Waiting.</p>';
+    } else if (data.current_status === 'called') {
+        message = '<p>Called. Proceed to the counter.</p>';
+    } else if (data.current_status === 'in_service') {
+        message = '<p>In service.</p>';
+    } else if (data.current_status === 'completed') {
+        message = '<p>Completed.</p>';
+    }
+
+    const msg = document.getElementById('queue-message');
+    if (msg) msg.innerHTML = message;
 }
 
 function refreshApplicantQueueStatus() {
     fetch("{% url 'applicant_queue_status' %}")
         .then(response => response.json())
-        .then(data => {
-            if (data.error) return;
-
-            document.getElementById('ticket-number').textContent = data.ticket_number || '-';
-            document.getElementById('current-status').textContent = data.current_status_display;
-            document.getElementById('arrival-confirmed').textContent = data.arrival_confirmed ? 'Yes' : 'No';
-            document.getElementById('wait-time').textContent = data.estimated_wait_minutes;
-            document.getElementById('wait-time-map').textContent = data.estimated_wait_minutes;
-            document.getElementById('position').textContent = data.position || '-';
-            document.getElementById('people-ahead').textContent = data.people_ahead ?? 0;
-            document.getElementById('queue-total').textContent = data.queue_total ?? 0;
-            document.getElementById('map-current-status').textContent = data.current_status_display;
-
-            setStageState(data.current_status);
-
-            const smallView = document.getElementById('small-queue-view');
-            const largeView = document.getElementById('large-queue-view');
-
-            if (data.large_queue_mode && data.current_status === 'waiting') {
-                smallView.style.display = 'none';
-                largeView.style.display = 'block';
-                renderLargeQueueView(data);
-            } else {
-                smallView.style.display = 'block';
-                largeView.style.display = 'none';
-                renderSmallQueueMap(data);
-            }
-
-            if (data.arrival_confirmed || data.current_status !== 'tracking') {
-                const btnSection = document.getElementById('arrival-button-section');
-                if (btnSection) btnSection.innerHTML = '';
-            }
-
-            let message = '';
-            if (data.current_status === 'waiting') {
-                message = '<p><strong>You are now in the waiting queue.</strong></p>';
-            } else if (data.current_status === 'called') {
-                message = '<p><strong>You have been called. Proceed to the assigned counter.</strong></p>';
-            } else if (data.current_status === 'in_service') {
-                message = '<p><strong>Your request is currently being served.</strong></p>';
-            } else if (data.current_status === 'completed') {
-                message = '<p><strong>Your request has been completed.</strong></p>';
-            }
-
-            const msg = document.getElementById('queue-message');
-            if (msg) msg.innerHTML = message;
-        })
+        .then(data => applyQueueData(data))
         .catch(error => console.log('Queue error:', error));
 }
 
+function connectQueueSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(`${protocol}://${window.location.host}/ws/applicant/queue/`);
+    const socketStatus = document.getElementById('socket-status');
+
+    socket.onopen = function() {
+        if (socketStatus) {
+            socketStatus.textContent = 'Live: Connected';
+            socketStatus.style.background = '#dcfce7';
+            socketStatus.style.color = '#166534';
+        }
+    };
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        applyQueueData(data);
+    };
+
+    socket.onclose = function() {
+        if (socketStatus) {
+            socketStatus.textContent = 'Live: Reconnecting...';
+            socketStatus.style.background = '#fee2e2';
+            socketStatus.style.color = '#991b1b';
+        }
+        setTimeout(connectQueueSocket, 2000);
+    };
+
+    socket.onerror = function() {
+        if (socketStatus) {
+            socketStatus.textContent = 'Live: Error';
+            socketStatus.style.background = '#fef3c7';
+            socketStatus.style.color = '#92400e';
+        }
+    };
+}
+
 refreshApplicantQueueStatus();
-setInterval(refreshApplicantQueueStatus, 3000);
+connectQueueSocket();
+setInterval(refreshApplicantQueueStatus, 5000);
+
+
+    const notificationWrapper = document.getElementById("notificationWrapper");
+    const notificationBell = document.getElementById("notificationBell");
+    const notificationDropdown = document.getElementById("notificationDropdown");
+    const notificationCount = document.getElementById("notificationCount");
+    const notificationList = document.getElementById("notificationList");
+    const markReadBtn = document.getElementById("markReadBtn");
+
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+    function loadNotifications() {
+        if (!notificationList || !notificationCount) return;
+
+        fetch("{% url 'applicant_notifications' %}")
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.error) return;
+
+                const unreadCount = data.unread_count || 0;
+
+                if (unreadCount > 0) {
+                    notificationCount.style.display = "inline-flex";
+                    notificationCount.textContent = unreadCount;
+                } else {
+                    notificationCount.style.display = "none";
+                }
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    notificationList.innerHTML = `<p class="empty-notification">No notifications yet.</p>`;
+                    return;
+                }
+
+                let html = "";
+
+                data.notifications.forEach(function (notification) {
+                    html += `
+                        <div class="notification-item ${notification.is_read ? "" : "unread"}">
+                            <h4>${notification.title}</h4>
+                            <p>${notification.message}</p>
+                            <span class="notification-time">${notification.created_at}</span>
+                        </div>
+                    `;
+                });
+
+                notificationList.innerHTML = html;
+            })
+            .catch(function (error) {
+                console.log("Notification error:", error);
+            });
+    }
+
+    if (notificationBell && notificationDropdown) {
+        notificationBell.addEventListener("click", function (event) {
+            event.stopPropagation();
+            notificationDropdown.classList.toggle("show");
+            loadNotifications();
+        });
+    }
+
+    if (markReadBtn) {
+        markReadBtn.addEventListener("click", function (event) {
+            event.stopPropagation();
+
+            fetch("{% url 'mark_notifications_read' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.success) {
+                    loadNotifications();
+                }
+            })
+            .catch(function (error) {
+                console.log("Mark read error:", error);
+            });
+        });
+    }
+
+    document.addEventListener("click", function (event) {
+        if (!notificationWrapper || !notificationDropdown) return;
+
+        const clickedInside = notificationWrapper.contains(event.target);
+
+        if (!clickedInside) {
+            notificationDropdown.classList.remove("show");
+        }
+    });
+
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
+
 </script>
 {% endblock %}

@@ -1,23 +1,23 @@
 {% extends 'queueing/huduma_base.html' %}
 
-{% block title %}Appointment Booked{% endblock %}
-{% block page_heading %}Appointment Booked Successfully{% endblock %}
-{% block page_subheading %}Your Huduma appointment has been generated successfully.{% endblock %}
+{% block title %}Booked{% endblock %}
+{% block page_heading %}Booked{% endblock %}
+{% block page_subheading %}Done.{% endblock %}
 
 {% block content %}
 <div class="card" style="max-width: 820px;">
     <div class="card-title">
-        <h3>Booking Confirmation</h3>
-        <span class="badge badge-green">Confirmed</span>
+        <h3>Confirmed</h3>
+        <span class="badge badge-green">Booked</span>
     </div>
 
     <div class="grid-2">
         <div class="soft-card">
-            <span class="detail-label">Huduma Booking Reference</span>
+            <span class="detail-label">Booking Ref</span>
             <span class="detail-value">{{ appointment.huduma_booking_ref }}</span>
         </div>
         <div class="soft-card">
-            <span class="detail-label">Linked Application Reference</span>
+            <span class="detail-label">Application Ref</span>
             <span class="detail-value">{{ application_reference }}</span>
         </div>
     </div>
@@ -28,41 +28,30 @@
             <span class="detail-value">{{ appointment.applicant.full_name }}</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Service Category</span>
-            <span class="detail-value">Civil Registration Services</span>
-        </div>
-        <div class="detail-item">
             <span class="detail-label">Service</span>
-            <span class="detail-value">Issuance of Birth Certificate</span>
+            <span class="detail-value">Birth Certificate</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Huduma Centre</span>
+            <span class="detail-label">Centre</span>
             <span class="detail-value">Huduma Centre City Square</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Appointment Date</span>
+            <span class="detail-label">Date</span>
             <span class="detail-value">{{ appointment.appointment_date }}</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Appointment Time</span>
+            <span class="detail-label">Time</span>
             <span class="detail-value">{{ appointment.appointment_time }}</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">Booking Status</span>
+            <span class="detail-label">Status</span>
             <span class="detail-value">{{ appointment.booking_status }}</span>
         </div>
     </div>
 
-    <div class="soft-card" style="margin-top: 20px;">
-        <span class="detail-label">Next Step</span>
-        <span class="detail-value">
-            Proceed to the queue tracking system on the appointment day and use the linked booking and application details for verification.
-        </span>
-    </div>
-
     <div class="btn-row" style="margin-top: 20px;">
-        <a href="{% url 'applicant_dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
-        <a href="{% url 'huduma_login' %}" class="btn btn-warning">Start Another Booking</a>
+        <a href="{% url 'applicant_dashboard' %}" class="btn btn-primary">Dashboard</a>
+        <a href="{% url 'huduma_login' %}" class="btn btn-secondary">New Booking</a>
     </div>
 </div>
 {% endblock %}

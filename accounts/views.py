@@ -2,8 +2,30 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
 from .models import ApplicantProfile
-from queueing.models import Application, Appointment
+from queueing.models import Application, Appointment, ServiceOfficer
+
+
+def get_next_applicant_route(user):
+    if not hasattr(user, 'applicant_profile'):
+        return 'login'
+
+    applicant = user.applicant_profile
+
+    application = Application.objects.filter(applicant=applicant).order_by('-submitted_at').first()
+    appointment = Appointment.objects.filter(applicant=applicant).order_by('-appointment_date', '-appointment_time').first()
+
+    if not application:
+        return 'ecitizen_login'
+
+    if not application.ecitizen_application_ref:
+        return 'ecitizen_login'
+
+    if not appointment:
+        return 'huduma_login'
+
+    return 'applicant_dashboard'
 
 
 def applicant_register(request):
@@ -29,11 +51,11 @@ def applicant_register(request):
             return redirect('applicant_register')
 
         if ApplicantProfile.objects.filter(national_id=national_id).exists():
-            messages.error(request, 'An applicant with this National ID already exists.')
+            messages.error(request, 'National ID already exists.')
             return redirect('applicant_register')
 
         if ApplicantProfile.objects.filter(email=email).exists():
-            messages.error(request, 'An applicant with this email already exists.')
+            messages.error(request, 'Email already exists.')
             return redirect('applicant_register')
 
         name_parts = full_name.split()
@@ -56,54 +78,81 @@ def applicant_register(request):
             email=email,
         )
 
-        messages.success(request, 'Registration successful. You can now log in.')
-        return redirect('login')
+        login(request, user)
+        messages.success(request, 'Account created successfully.')
+        return redirect('ecitizen_login')
 
     return render(request, 'accounts/register.html')
 
 
-def get_applicant_next_step(user):
-    applicant = user.applicant_profile
-
-    has_application = Application.objects.filter(applicant=applicant).exists()
-    has_appointment = Appointment.objects.filter(applicant=applicant).exists()
-
-    if not has_application:
-        return 'ecitizen_login'
-    elif has_application and not has_appointment:
-        return 'huduma_login'
-    else:
-        return 'applicant_dashboard'
-
-
 def login_view(request):
     if request.user.is_authenticated:
-        if hasattr(request.user, 'service_officer_profile'):
+        if hasattr(request.user, 'applicant_profile'):
+            return redirect(get_next_applicant_route(request.user))
+
+        if ServiceOfficer.objects.filter(user=request.user).exists():
             return redirect('staff_dashboard')
-        elif hasattr(request.user, 'applicant_profile'):
-            return redirect(get_applicant_next_step(request.user))
-        else:
-            return redirect('admin:index')
+
+        logout(request)
+        messages.error(request, 'This account is not registered as an applicant or staff account.')
+        return redirect('login')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
 
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request, user)
+            if hasattr(user, 'applicant_profile'):
+                login(request, user)
+                return redirect(get_next_applicant_route(user))
 
-            if hasattr(user, 'service_officer_profile'):
-                return redirect('staff_dashboard')
-            elif hasattr(user, 'applicant_profile'):
-                return redirect(get_applicant_next_step(user))
-            else:
-                return redirect('admin:index')
-        else:
-            messages.error(request, 'Invalid username or password.')
+            if ServiceOfficer.objects.filter(user=user).exists():
+                messages.error(request, 'Use staff login.')
+                return redirect('staff_login')
+
+            messages.error(request, 'This account is not registered as an applicant or staff account.')
+            return redirect('login')
+
+        messages.error(request, 'Invalid username or password.')
 
     return render(request, 'accounts/login.html')
+
+
+def staff_login_view(request):
+    if request.user.is_authenticated:
+        if ServiceOfficer.objects.filter(user=request.user).exists():
+            return redirect('staff_dashboard')
+
+        if hasattr(request.user, 'applicant_profile'):
+            return redirect(get_next_applicant_route(request.user))
+
+        logout(request)
+        messages.error(request, 'This account is not registered as a staff account.')
+        return redirect('staff_login')
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            if hasattr(user, 'applicant_profile'):
+                messages.error(request, 'Applicants must use applicant login.')
+                return redirect('login')
+
+            if not ServiceOfficer.objects.filter(user=user).exists():
+                messages.error(request, 'This account is not registered as a staff account.')
+                return redirect('staff_login')
+
+            login(request, user)
+            return redirect('staff_dashboard')
+
+        messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'accounts/staff_login.html')
 
 
 def logout_view(request):

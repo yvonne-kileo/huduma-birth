@@ -1,0 +1,207 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Review and Payment{% endblock %}
+{% block page_heading %}Current Birth Certificate{% endblock %}
+{% block page_subheading %}Review and pay.{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Review</h3>
+        <span class="badge">Step 6 of 6</span>
+    </div>
+
+    <div class="detail-list">
+        <div class="detail-item">
+            <span class="detail-label">Type</span>
+            <span class="detail-value">{{ application.get_type_of_application_display }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Pickup</span>
+            <span class="detail-value">{{ application.pickup_location }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Child</span>
+            <span class="detail-value">{{ application.child_first_name }} {{ application.child_middle_name }} {{ application.child_last_name }}</span>
+        </div>
+    </div>
+
+    <div class="soft-card" style="margin: 18px 0;">
+        <span class="detail-label">Amount</span>
+        <span class="detail-value">
+            {% if application.type_of_application == 'with_amendment' %}
+                KES 1050
+            {% else %}
+                KES 250
+            {% endif %}
+        </span>
+    </div>
+
+    <form method="POST" id="payment-form">
+        {% csrf_token %}
+
+        <label for="payment_method">Method</label>
+        <select name="payment_method" id="payment_method" required>
+            <option value="">Choose...</option>
+            <option value="M-Pesa">M-Pesa</option>
+            <option value="Airtel Money">Airtel Money</option>
+            <option value="Card">Card</option>
+        </select>
+
+        <div id="mpesa-fields" style="display:none;">
+            <label for="payment_phone">M-Pesa Number</label>
+            <input type="text" name="payment_phone" id="payment_phone" placeholder="07XXXXXXXX">
+        </div>
+
+        <div id="airtel-fields" style="display:none;">
+            <label for="airtel_phone">Airtel Number</label>
+            <input type="text" name="airtel_phone" id="airtel_phone" placeholder="07XXXXXXXX">
+        </div>
+
+        <div id="card-fields" style="display:none;">
+            <label for="card_name">Card Name</label>
+            <input type="text" name="card_name" id="card_name">
+
+            <label for="card_number">Card Number</label>
+            <input type="text" name="card_number" id="card_number" placeholder="1234 5678 9012 3456">
+
+            <div class="grid-2">
+                <div>
+                    <label for="expiry_date">Expiry</label>
+                    <input type="text" name="expiry_date" id="expiry_date" placeholder="MM/YY">
+                </div>
+                <div>
+                    <label for="cvv">CVV</label>
+                    <input type="password" name="cvv" id="cvv">
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-payment-box" class="soft-card" style="display:none; margin-bottom:18px;">
+            <span class="detail-label">Mobile Payment</span>
+            <span class="detail-value" id="mobile-payment-text">A payment prompt will be sent to your phone.</span>
+        </div>
+
+        <div class="btn-row" style="justify-content: space-between;">
+            <a href="{% url 'ecitizen_uploads' %}" class="btn btn-secondary">Previous</a>
+            <button type="submit" class="btn btn-primary" id="pay-btn">Pay</button>
+        </div>
+    </form>
+</div>
+
+<div id="payment-overlay" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(15, 27, 20, 0.35);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+">
+    <div style="
+        width:100%;
+        max-width:420px;
+        background:#fff;
+        border-radius:24px;
+        border:1px solid var(--border);
+        box-shadow:var(--shadow);
+        padding:28px;
+        text-align:center;
+    ">
+        <h3 style="margin:0 0 12px;">Processing</h3>
+        <p id="overlay-text" class="muted" style="margin:0 0 18px;">Please wait...</p>
+        <div style="
+            width:56px;
+            height:56px;
+            margin:0 auto;
+            border:5px solid #dfe9e2;
+            border-top:5px solid var(--primary);
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+        "></div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+const paymentMethod = document.getElementById('payment_method');
+const mpesaFields = document.getElementById('mpesa-fields');
+const airtelFields = document.getElementById('airtel-fields');
+const cardFields = document.getElementById('card-fields');
+const mobilePaymentBox = document.getElementById('mobile-payment-box');
+const mobilePaymentText = document.getElementById('mobile-payment-text');
+const paymentForm = document.getElementById('payment-form');
+const paymentOverlay = document.getElementById('payment-overlay');
+const overlayText = document.getElementById('overlay-text');
+
+function togglePaymentFields() {
+    mpesaFields.style.display = 'none';
+    airtelFields.style.display = 'none';
+    cardFields.style.display = 'none';
+    mobilePaymentBox.style.display = 'none';
+
+    if (paymentMethod.value === 'M-Pesa') {
+        mpesaFields.style.display = 'block';
+        mobilePaymentBox.style.display = 'block';
+        mobilePaymentText.textContent = 'An M-Pesa prompt will be sent to your phone.';
+    } else if (paymentMethod.value === 'Airtel Money') {
+        airtelFields.style.display = 'block';
+        mobilePaymentBox.style.display = 'block';
+        mobilePaymentText.textContent = 'An Airtel Money prompt will be sent to your phone.';
+    } else if (paymentMethod.value === 'Card') {
+        cardFields.style.display = 'block';
+    }
+}
+
+paymentMethod.addEventListener('change', togglePaymentFields);
+togglePaymentFields();
+
+paymentForm.addEventListener('submit', function(e) {
+    const method = paymentMethod.value;
+
+    if (method === 'M-Pesa') {
+        const phone = document.getElementById('payment_phone').value.trim();
+        if (!phone) return;
+        e.preventDefault();
+        paymentOverlay.style.display = 'flex';
+        overlayText.textContent = `Sending M-Pesa prompt to ${phone}...`;
+
+        setTimeout(() => {
+            overlayText.textContent = 'Waiting for payment confirmation...';
+        }, 1500);
+
+        setTimeout(() => {
+            paymentForm.submit();
+        }, 3500);
+    }
+
+    if (method === 'Airtel Money') {
+        const phone = document.getElementById('airtel_phone').value.trim();
+        if (!phone) return;
+        e.preventDefault();
+        paymentOverlay.style.display = 'flex';
+        overlayText.textContent = `Sending Airtel Money prompt to ${phone}...`;
+
+        setTimeout(() => {
+            overlayText.textContent = 'Waiting for payment confirmation...';
+        }, 1500);
+
+        setTimeout(() => {
+            paymentForm.submit();
+        }, 3500);
+    }
+
+    if (method === 'Card') {
+        paymentOverlay.style.display = 'flex';
+        overlayText.textContent = 'Authorizing card payment...';
+    }
+});
+</script>
+{% endblock %}

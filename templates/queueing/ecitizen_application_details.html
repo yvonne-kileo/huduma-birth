@@ -1,0 +1,97 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Details{% endblock %}
+{% block page_heading %}Current Birth Certificate{% endblock %}
+{% block page_subheading %}Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Details</h3>
+        <span class="badge badge-blue">Step 2 of 6</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="type_of_application">Application Type</label>
+        <select name="type_of_application" id="type_of_application" required>
+            <option value="">Choose...</option>
+            <option value="without_amendment" {% if application.type_of_application == 'without_amendment' %}selected{% endif %}>
+                Without Amendment
+            </option>
+            <option value="with_amendment" {% if application.type_of_application == 'with_amendment' %}selected{% endif %}>
+                With Amendment
+            </option>
+        </select>
+
+        <div id="amendment-section" style="display: none;">
+            <label>Amendment Type</label>
+            <div class="soft-card" style="margin-bottom: 16px;">
+                <label style="font-weight: 500; margin-bottom: 10px;">
+                    <input type="checkbox" name="amendment_name_of_child" {% if application.amendment_name_of_child %}checked{% endif %}>
+                    Child Name
+                </label>
+
+                <label style="font-weight: 500; margin-bottom: 10px;">
+                    <input type="checkbox" name="amendment_place_of_birth" {% if application.amendment_place_of_birth %}checked{% endif %}>
+                    Place of Birth
+                </label>
+
+                <label style="font-weight: 500; margin-bottom: 10px;">
+                    <input type="checkbox" name="amendment_name_of_mother" {% if application.amendment_name_of_mother %}checked{% endif %}>
+                    Mother Name
+                </label>
+
+                <label style="font-weight: 500; margin-bottom: 10px;">
+                    <input type="checkbox" name="amendment_name_of_father" {% if application.amendment_name_of_father %}checked{% endif %}>
+                    Father Name
+                </label>
+
+                <label style="font-weight: 500; margin-bottom: 0;">
+                    <input type="checkbox" name="amendment_other" {% if application.amendment_other %}checked{% endif %}>
+                    Other
+                </label>
+            </div>
+        </div>
+
+        <label for="pickup_location">Pickup Location</label>
+        <select name="pickup_location" id="pickup_location" required>
+            <option value="Huduma Centre City Square" {% if application.pickup_location == 'Huduma Centre City Square' %}selected{% endif %}>
+                Huduma Centre City Square
+            </option>
+        </select>
+
+        <label for="residential_address">Residential Address</label>
+        <input
+            type="text"
+            name="residential_address"
+            id="residential_address"
+            value="{{ application.residential_address|default:'' }}"
+            required
+        >
+
+        <div class="btn-row" style="justify-content: space-between;">
+            <a href="{% url 'ecitizen_birth_instructions' %}" class="btn btn-secondary">Previous</a>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+
+<script>
+const typeSelect = document.getElementById('type_of_application');
+const amendmentSection = document.getElementById('amendment-section');
+
+function toggleAmendmentSection() {
+    if (typeSelect.value === 'with_amendment') {
+        amendmentSection.style.display = 'block';
+    } else {
+        amendmentSection.style.display = 'none';
+        amendmentSection.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    }
+}
+
+toggleAmendmentSection();
+typeSelect.addEventListener('change', toggleAmendmentSection);
+</script>
+{% endblock %}

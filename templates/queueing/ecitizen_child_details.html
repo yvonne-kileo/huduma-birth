@@ -1,0 +1,106 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Child Details{% endblock %}
+{% block page_heading %}Current Birth Certificate{% endblock %}
+{% block page_subheading %}Child Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Child Details</h3>
+        <span class="badge">Step 3 of 6</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="child_over_18">Over 18</label>
+        <select name="child_over_18" id="child_over_18" required>
+            <option value="">Choose...</option>
+            <option value="no" {% if application.child_over_18 == 'no' %}selected{% endif %}>No</option>
+            <option value="yes" {% if application.child_over_18 == 'yes' %}selected{% endif %}>Yes</option>
+        </select>
+
+        <label for="born_in_health_facility">Born in Health Facility</label>
+        <select name="born_in_health_facility" id="born_in_health_facility" required>
+            <option value="">Choose...</option>
+            <option value="yes" {% if application.born_in_health_facility == 'yes' %}selected{% endif %}>Yes</option>
+            <option value="no" {% if application.born_in_health_facility == 'no' %}selected{% endif %}>No</option>
+        </select>
+
+
+        <label for="county_of_birth">County of Birth</label>
+        <select name="county_of_birth" id="county_of_birth" required>
+            <option value="Nairobi" {% if application.county_of_birth == 'Nairobi' %}selected{% endif %}>Nairobi</option>
+        </select>
+
+        <label for="notification_number">Notification No.</label>
+        <input
+            type="text"
+            name="notification_number"
+            id="notification_number"
+            value="{{ application.notification_number|default:'' }}"
+            required
+        >
+
+        <div class="grid-3">
+            <div>
+                <label for="child_first_name">First Name</label>
+                <input
+                    type="text"
+                    name="child_first_name"
+                    id="child_first_name"
+                    value="{{ application.child_first_name|default:'' }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="child_middle_name">Middle Name</label>
+                <input
+                    type="text"
+                    name="child_middle_name"
+                    id="child_middle_name"
+                    value="{{ application.child_middle_name|default:'' }}"
+                >
+            </div>
+
+            <div>
+                <label for="child_last_name">Last Name</label>
+                <input
+                    type="text"
+                    name="child_last_name"
+                    id="child_last_name"
+                    value="{{ application.child_last_name|default:'' }}"
+                >
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="date_of_birth">Date of Birth</label>
+                <input
+                    type="date"
+                    name="date_of_birth"
+                    id="date_of_birth"
+                    value="{% if application.date_of_birth %}{{ application.date_of_birth|date:'Y-m-d' }}{% endif %}"
+                >
+            </div>
+
+            <div>
+                <label for="sex">Sex</label>
+                <select name="sex" id="sex">
+                    <option value="">Choose...</option>
+                    <option value="male" {% if application.sex == 'male' %}selected{% endif %}>Male</option>
+                    <option value="female" {% if application.sex == 'female' %}selected{% endif %}>Female</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="btn-row" style="justify-content: space-between;">
+            <a href="{% url 'ecitizen_application_details' %}" class="btn btn-secondary">Previous</a>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

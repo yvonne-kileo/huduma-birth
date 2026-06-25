@@ -1,34 +1,414 @@
 {% extends 'base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Applicant Login{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
 
-{% block layout %}
-<div class="auth-wrap">
-    <div class="auth-card">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="message {{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+{% block extra_css %}
+<style>
+    .topbar,
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+            radial-gradient(circle at var(--mouse-x, 80%) var(--mouse-y, 20%), rgba(0, 122, 77, 0.12), transparent 28%),
+            linear-gradient(135deg, #f6f8fa 0%, #ffffff 48%, #eef8f2 100%);
+    }
+
+    .login-card {
+        width: min(460px, 100%);
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid #e3ece8;
+        border-radius: 30px;
+        padding: 38px;
+        box-shadow: 0 28px 80px rgba(16, 24, 40, 0.12);
+        backdrop-filter: blur(18px);
+        transform: translateY(18px);
+        opacity: 0;
+        transition: 0.65s ease;
+    }
+
+    .login-card.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .login-brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 34px;
+    }
+
+    .brand-mark {
+        width: 52px;
+        height: 52px;
+        border-radius: 17px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: grid;
+        place-items: center;
+        font-size: 1.08rem;
+        font-weight: 950;
+    }
+
+    .brand-title {
+        color: #101828;
+        font-size: 1.22rem;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+
+    .brand-subtitle {
+        margin-top: 5px;
+        color: #007a4d;
+        font-size: 0.86rem;
+        font-weight: 850;
+    }
+
+    .login-title {
+        margin: 0;
+        color: #101828;
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        line-height: 1;
+        text-align: center;
+        letter-spacing: -0.075em;
+        font-weight: 950;
+    }
+
+    .form-area {
+        margin-top: 34px;
+    }
+
+    .messages {
+        margin-bottom: 18px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .message-item {
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fff4ed;
+        border: 1px solid #fed7aa;
+        color: #9a3412;
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .form-group input {
+        width: 100%;
+        height: 60px;
+        border: 1px solid #dce6eb;
+        border-radius: 18px;
+        background: #ffffff;
+        color: #101828;
+        padding: 20px 52px 0 16px;
+        font-size: 1rem;
+        font-weight: 750;
+        outline: none;
+        margin: 0;
+        transition: 0.22s ease;
+    }
+
+    .form-group label {
+        position: absolute;
+        left: 16px;
+        top: 19px;
+        color: #667085;
+        font-size: 0.98rem;
+        font-weight: 850;
+        pointer-events: none;
+        transition: 0.22s ease;
+    }
+
+    .form-group input:focus,
+    .form-group.filled input {
+        border-color: #007a4d;
+        box-shadow: 0 0 0 4px rgba(0, 122, 77, 0.10);
+    }
+
+    .form-group input:focus + label,
+    .form-group.filled label {
+        top: 8px;
+        color: #007a4d;
+        font-size: 0.72rem;
+        font-weight: 950;
+    }
+
+    .field-icon {
+        position: absolute;
+        right: 17px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #98a2b3;
+        font-size: 1rem;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 40px;
+        padding: 0 13px;
+        border: none;
+        border-radius: 13px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.82rem;
+        font-weight: 950;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .toggle-password:hover {
+        background: #d8f1e4;
+    }
+
+    .login-options {
+        display: flex;
+        justify-content: flex-end;
+        margin: -2px 0 24px;
+    }
+
+    .forgot-link {
+        color: #007a4d;
+        font-size: 0.95rem;
+        font-weight: 950;
+        text-decoration: none;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .submit-btn {
+        position: relative;
+        width: 100%;
+        height: 60px;
+        border: none;
+        border-radius: 18px;
+        background: #007a4d;
+        color: #ffffff;
+        font-size: 1.08rem;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: 0 18px 34px rgba(0, 122, 77, 0.23);
+        overflow: hidden;
+        transition: 0.22s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 44px rgba(0, 122, 77, 0.28);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .submit-btn.loading {
+        pointer-events: none;
+        opacity: 0.88;
+    }
+
+    .submit-btn.loading::after {
+        content: "";
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255,255,255,0.45);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        position: absolute;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        animation: spin 0.8s linear infinite;
+    }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: scale(0);
+        background: rgba(255,255,255,0.45);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    @keyframes spin {
+        to {
+            transform: translateY(-50%) rotate(360deg);
+        }
+    }
+
+    @media (max-width: 520px) {
+        .login-page {
+            padding: 16px;
+        }
+
+        .login-card {
+            padding: 28px 20px;
+            border-radius: 24px;
+        }
+
+        .login-brand {
+            margin-bottom: 26px;
+        }
+
+        .form-area {
+            margin-top: 28px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page" id="loginPage">
+    <div class="login-card" id="loginCard">
+        <div class="login-brand">
+            <div class="brand-mark">HB</div>
+            <div>
+                <div class="brand-title">Huduma Center</div>
+                <div class="brand-subtitle">For Every Citizen</div>
             </div>
-        {% endif %}
+        </div>
 
-        <h2>Welcome back</h2>
-        <p>Sign in to continue to the Huduma Centre City Square birth certificate queue system.</p>
+        <h1 class="login-title">Login</h1>
 
-        <form method="POST">
+        <form method="POST" class="form-area" id="loginForm">
             {% csrf_token %}
 
-            <label for="username">Username</label>
-            <input type="text" name="username" id="username" required>
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message-item">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-            <label for="password">Password</label>
-            <input type="password" name="password" id="password" required>
+            <div class="form-group">
+                <input type="text" name="username" id="username" autocomplete="username" required>
+                <label for="username">Username</label>
+                <span class="field-icon">●</span>
+            </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            <div class="form-group">
+                <input type="password" name="password" id="password" autocomplete="current-password" required>
+                <label for="password">Password</label>
+                <button type="button" class="toggle-password" id="togglePassword">Show</button>
+            </div>
+
+            <div class="login-options">
+                <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Login</button>
         </form>
     </div>
 </div>
+
+<script>
+    const loginPage = document.getElementById("loginPage");
+    const loginCard = document.getElementById("loginCard");
+    const loginForm = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const inputs = document.querySelectorAll(".form-group input");
+
+    window.addEventListener("load", function () {
+        loginCard.classList.add("show");
+        updateFilledInputs();
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        const x = Math.round((event.clientX / window.innerWidth) * 100);
+        const y = Math.round((event.clientY / window.innerHeight) * 100);
+        loginPage.style.setProperty("--mouse-x", x + "%");
+        loginPage.style.setProperty("--mouse-y", y + "%");
+    });
+
+    function updateFilledInputs() {
+        inputs.forEach(function (input) {
+            const group = input.closest(".form-group");
+
+            if (input.value.trim() !== "") {
+                group.classList.add("filled");
+            } else {
+                group.classList.remove("filled");
+            }
+        });
+    }
+
+    inputs.forEach(function (input) {
+        input.addEventListener("input", updateFilledInputs);
+        input.addEventListener("blur", updateFilledInputs);
+        input.addEventListener("focus", function () {
+            input.closest(".form-group").classList.add("filled");
+        });
+    });
+
+    togglePassword.addEventListener("click", function () {
+        const showing = passwordInput.type === "text";
+        passwordInput.type = showing ? "password" : "text";
+        togglePassword.textContent = showing ? "Show" : "Hide";
+    });
+
+    submitBtn.addEventListener("click", function (event) {
+        const circle = document.createElement("span");
+        const diameter = Math.max(submitBtn.clientWidth, submitBtn.clientHeight);
+        const radius = diameter / 2;
+        const rect = submitBtn.getBoundingClientRect();
+
+        circle.style.width = circle.style.height = diameter + "px";
+        circle.style.left = event.clientX - rect.left - radius + "px";
+        circle.style.top = event.clientY - rect.top - radius + "px";
+        circle.classList.add("ripple");
+
+        const oldRipple = submitBtn.querySelector(".ripple");
+        if (oldRipple) {
+            oldRipple.remove();
+        }
+
+        submitBtn.appendChild(circle);
+    });
+
+    loginForm.addEventListener("submit", function () {
+        submitBtn.classList.add("loading");
+        submitBtn.textContent = "Logging in";
+    });
+</script>
 {% endblock %}

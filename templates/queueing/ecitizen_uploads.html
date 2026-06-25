@@ -1,0 +1,33 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Uploads{% endblock %}
+{% block page_heading %}Current Birth Certificate{% endblock %}
+{% block page_subheading %}Uploads{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <span class="badge">Step 5 of 6</span>
+    </div>
+
+    <h3>Uploads</h3>
+
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label for="upload_birth_notification">1. Birth Notification *</label>
+    <input type="file" name="upload_birth_notification" id="upload_birth_notification" required>
+
+    <label for="upload_applicant_id">2. Applicant ID</label>
+    <input type="file" name="upload_applicant_id" id="upload_applicant_id">
+
+    <label for="upload_parent_id">3. Parent ID *</label>
+    <input type="file" name="upload_parent_id" id="upload_parent_id" required>
+
+    <div class="btn-row" style="justify-content: space-between;">
+        <a href="{% url 'ecitizen_parents_information' %}" class="btn btn-secondary">Previous</a>
+        <button type="submit" class="btn btn-primary">Next</button>
+    </div>
+    </form>
+</div>
+{% endblock %}

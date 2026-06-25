@@ -1,0 +1,67 @@
+{% extends 'queueing/ecitizen_base.html' %}
+
+{% block title %}Parents{% endblock %}
+{% block page_heading %}Current Birth Certificate{% endblock %}
+{% block page_subheading %}Parents{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        <h3>Parents</h3>
+        <span class="badge">Step 4 of 6</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="father_full_name">Father Name</label>
+        <input
+            type="text"
+            name="father_full_name"
+            id="father_full_name"
+            value="{{ application.father_full_name|default:'' }}"
+            required
+        >
+
+        <label for="father_id_number">Father ID</label>
+        <input
+            type="text"
+            name="father_id_number"
+            id="father_id_number"
+            value="{{ application.father_id_number|default:'' }}"
+        >
+
+        <label for="mother_full_name">Mother Name</label>
+        <input
+            type="text"
+            name="mother_full_name"
+            id="mother_full_name"
+            value="{{ application.mother_full_name|default:'' }}"
+            required
+        >
+
+        <label for="mother_id_number">Mother ID</label>
+        <input
+            type="text"
+            name="mother_id_number"
+            id="mother_id_number"
+            value="{{ application.mother_id_number|default:'' }}"
+        >
+
+        <label for="parent_phone_number">Phone Number</label>
+        <input
+            type="text"
+            name="parent_phone_number"
+            id="parent_phone_number"
+            value="{{ application.parent_phone_number|default:'' }}"
+            required
+        >
+
+        <div class="btn-row" style="justify-content: space-between;">
+            <a href="{% url 'ecitizen_child_details' %}" class="btn btn-secondary">Previous</a>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

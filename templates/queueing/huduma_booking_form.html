@@ -1,14 +1,14 @@
 {% extends 'queueing/huduma_base.html' %}
 
-{% block title %}Huduma Appointment Booking{% endblock %}
-{% block page_heading %}Huduma Appointment Booking{% endblock %}
-{% block page_subheading %}Book a visit to Huduma Centre City Square for birth certificate service.{% endblock %}
+{% block title %}Appointment{% endblock %}
+{% block page_heading %}Huduma Booking{% endblock %}
+{% block page_subheading %}Book.{% endblock %}
 
 {% block content %}
 <div class="card" style="max-width: 820px;">
     <div class="card-title">
-        <h3>Appointment Booking Form</h3>
-        <span class="badge badge-green">Service by Appointment</span>
+        <h3>Booking</h3>
+        <span class="badge">Appointment</span>
     </div>
 
     <div class="grid-2" style="margin-bottom: 18px;">
@@ -17,7 +17,7 @@
             <span class="detail-value">{{ applicant.full_name }}</span>
         </div>
         <div class="soft-card">
-            <span class="detail-label">Linked Application Reference</span>
+            <span class="detail-label">Reference</span>
             <span class="detail-value">{{ application.ecitizen_application_ref }}</span>
         </div>
     </div>
@@ -27,11 +27,11 @@
 
         <div class="grid-2">
             <div>
-                <label for="service_category_display">Service Category</label>
+                <label for="service_category_display">Category</label>
                 <input
                     type="text"
                     id="service_category_display"
-                    value="Civil Registration Services"
+                    value="Civil Registration"
                     readonly
                 >
             </div>
@@ -41,7 +41,7 @@
                 <input
                     type="text"
                     id="service_display"
-                    value="Issuance of Birth Certificate"
+                    value="Birth Certificate"
                     readonly
                 >
             </div>
@@ -49,7 +49,7 @@
 
         <div class="grid-2">
             <div>
-                <label for="centre_display">Huduma Centre</label>
+                <label for="centre_display">Centre</label>
                 <input
                     type="text"
                     id="centre_display"
@@ -59,7 +59,7 @@
             </div>
 
             <div>
-                <label for="appointment_date">Appointment Date</label>
+                <label for="appointment_date">Date</label>
                 <input
                     type="date"
                     name="appointment_date"
@@ -69,9 +69,9 @@
             </div>
         </div>
 
-        <label for="appointment_time">Appointment Time</label>
+        <label for="appointment_time">Time</label>
         <select name="appointment_time" id="appointment_time" required>
-            <option value="">Select time slot</option>
+            <option value="">Choose...</option>
             <option value="08:00">08:00 AM</option>
             <option value="09:00">09:00 AM</option>
             <option value="10:00">10:00 AM</option>
@@ -82,16 +82,9 @@
             <option value="16:00">04:00 PM</option>
         </select>
 
-        <div class="soft-card" style="margin-bottom: 20px;">
-            <span class="detail-label">Booking Note</span>
-            <span class="detail-value">
-                This simulation mirrors Huduma Kenya service-by-appointment flow for academic demonstration.
-            </span>
-        </div>
-
         <div class="btn-row">
-            <button type="submit" class="btn btn-primary">Book Appointment</button>
-            <a href="{% url 'huduma_login' %}" class="btn btn-danger">Back</a>
+            <button type="submit" class="btn btn-primary">Book</button>
+            <a href="{% url 'huduma_login' %}" class="btn btn-secondary">Back</a>
         </div>
     </form>
 </div>

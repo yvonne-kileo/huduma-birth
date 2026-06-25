@@ -1,104 +1,336 @@
 {% extends 'base.html' %}
 
 {% block title %}Reports Dashboard{% endblock %}
-{% block page_heading %}Reports Dashboard{% endblock %}
-{% block page_subheading %}Operational analytics for applications, bookings, queue activity, and service flow.{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
 
-{% block content %}
+{% block topbar_actions %}
+<a href="{% url 'staff_dashboard' %}" class="reports-top-btn">Back to Dashboard</a>
+<a href="{% url 'logout' %}" class="reports-top-btn logout-top-btn">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
 <style>
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 24px;
+    }
+
+    .reports-top-btn {
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .reports-top-btn:hover {
+        transform: translateY(-2px);
+        background: #dff4ea;
+    }
+
+    .logout-top-btn {
+        background: #007a4d;
+        color: #ffffff;
+        box-shadow: 0 14px 28px rgba(0, 122, 77, 0.18);
+    }
+
+    .reports-page {
+        min-height: calc(100vh - 48px);
+        background:
+            radial-gradient(circle at var(--mx, 85%) var(--my, 12%), rgba(0, 122, 77, 0.11), transparent 28%),
+            linear-gradient(135deg, #f6f8fa 0%, #ffffff 50%, #eef8f2 100%);
+    }
+
+    .reports-shell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        align-items: start;
+        width: 100%;
+    }
+
+    .reports-sidebar {
+        position: sticky;
+        top: 24px;
+        min-height: calc(100vh - 48px);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #e7edf0;
+        border-radius: 28px;
+        padding: 18px;
+        box-shadow: 0 18px 42px rgba(16, 24, 40, 0.07);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+
+    .reports-sidebar::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        bottom: -90px;
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.08);
+    }
+
+    .reports-brand {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 54px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 8px 20px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid #edf2f4;
+    }
+
+    .reports-logo {
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .reports-brand h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.05rem;
+        line-height: 1.2;
+        font-weight: 950;
+        letter-spacing: -0.04em;
+    }
+
+    .reports-brand p {
+        margin: 5px 0 0;
+        color: #667085;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        font-weight: 650;
+    }
+
+    .reports-nav {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        gap: 9px;
+    }
+
+    .reports-nav a {
+        min-height: 48px;
+        padding: 0 15px;
+        border-radius: 16px;
+        color: #344054;
+        display: flex;
+        align-items: center;
+        font-size: 0.94rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .reports-nav a:hover,
+    .reports-nav a.active {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .reports-content {
+        display: grid;
+        gap: 22px;
+    }
+
+    .reports-intro {
+        position: relative;
+        overflow: hidden;
+        min-height: 210px;
+        border-radius: 30px;
+        padding: 34px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #e7edf0;
+        box-shadow: 0 18px 42px rgba(16, 24, 40, 0.07);
+        backdrop-filter: blur(18px);
+    }
+
+    .reports-intro::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        top: -100px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.09);
+    }
+
+    .intro-label {
+        position: relative;
+        z-index: 2;
+        width: max-content;
+        min-height: 34px;
+        padding: 0 13px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.76rem;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    .reports-intro h1 {
+        position: relative;
+        z-index: 2;
+        margin: 18px 0 0;
+        color: #101828;
+        font-size: clamp(2.4rem, 6vw, 4.6rem);
+        line-height: 0.95;
+        letter-spacing: -0.075em;
+        font-weight: 950;
+    }
+
+    .reports-intro h1 span {
+        color: #007a4d;
+    }
+
     .reports-hero {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 18px;
-        margin-bottom: 24px;
+    }
+
+    .metric-card,
+    .analytics-panel,
+    .recent-panel {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #e7edf0;
+        box-shadow: 0 18px 42px rgba(16, 24, 40, 0.07);
+        backdrop-filter: blur(18px);
     }
 
     .metric-card {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-        border: 1px solid #e2e8f0;
-        border-radius: 22px;
+        min-height: 135px;
+        border-radius: 24px;
         padding: 22px;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
     }
 
     .metric-card::after {
         content: "";
         position: absolute;
-        top: -30px;
-        right: -30px;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: rgba(37, 99, 235, 0.08);
+        right: -38px;
+        bottom: -48px;
+        width: 120px;
+        height: 120px;
+        border-radius: 34px;
+        background: #eaf8f1;
+        transform: rotate(-10deg);
     }
 
     .metric-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 10px;
+        position: relative;
+        z-index: 2;
         display: block;
+        margin-bottom: 12px;
+        color: #667085;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 950;
     }
 
     .metric-value {
-        font-size: 32px;
-        font-weight: 800;
-        color: #0f172a;
+        position: relative;
+        z-index: 2;
+        color: #101828;
+        font-size: 2.45rem;
         line-height: 1;
+        letter-spacing: -0.06em;
+        font-weight: 950;
     }
 
     .metric-sub {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #64748b;
+        position: relative;
+        z-index: 2;
+        margin-top: 12px;
+        color: #667085;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        font-weight: 700;
     }
 
     .reports-main {
         display: grid;
-        grid-template-columns: 1.05fr 1.35fr;
+        grid-template-columns: 0.95fr 1.2fr;
         gap: 22px;
-        margin-bottom: 24px;
     }
 
-    .analytics-panel {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
+    .analytics-panel,
+    .recent-panel {
+        border-radius: 26px;
         padding: 24px;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
     }
 
-    .analytics-title {
+    .panel-title {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
     }
 
-    .analytics-title h3 {
+    .panel-title h3 {
         margin: 0;
-        font-size: 22px;
-        font-weight: 800;
-        color: #0f172a;
+        color: #101828;
+        font-size: 1.35rem;
+        letter-spacing: -0.04em;
+        font-weight: 950;
     }
 
     .analytics-chip {
-        background: linear-gradient(135deg, #dbeafe, #e0f2fe);
-        color: #1d4ed8;
-        border: 1px solid #bfdbfe;
+        min-height: 34px;
+        padding: 0 12px;
         border-radius: 999px;
-        padding: 8px 12px;
-        font-size: 12px;
-        font-weight: 800;
+        background: #eaf8f1;
+        color: #007a4d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 950;
     }
 
     .status-stack {
         display: grid;
-        gap: 14px;
+        gap: 12px;
     }
 
     .status-card {
@@ -106,9 +338,16 @@
         justify-content: space-between;
         align-items: center;
         border-radius: 18px;
-        padding: 18px 18px;
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 1px solid #e2e8f0;
+        padding: 16px;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+        transition: 0.22s ease;
+    }
+
+    .status-card:hover {
+        transform: translateY(-2px);
+        background: #ffffff;
+        box-shadow: 0 12px 26px rgba(16, 24, 40, 0.07);
     }
 
     .status-left {
@@ -118,27 +357,28 @@
     }
 
     .status-dot {
-        width: 14px;
-        height: 14px;
+        width: 13px;
+        height: 13px;
         border-radius: 50%;
+        box-shadow: 0 0 0 6px rgba(0, 122, 77, 0.08);
     }
 
-    .dot-tracking { background: #94a3b8; }
-    .dot-waiting { background: #2563eb; }
-    .dot-called { background: #f59e0b; }
-    .dot-service { background: #06b6d4; }
+    .dot-tracking { background: #98a2b3; }
+    .dot-waiting { background: #007a4d; }
+    .dot-called { background: #f97316; }
+    .dot-service { background: #2563eb; }
     .dot-completed { background: #16a34a; }
 
     .status-name {
-        font-size: 15px;
-        font-weight: 700;
-        color: #334155;
+        color: #344054;
+        font-weight: 850;
     }
 
     .status-number {
-        font-size: 28px;
-        font-weight: 800;
-        color: #0f172a;
+        color: #101828;
+        font-size: 1.55rem;
+        letter-spacing: -0.04em;
+        font-weight: 950;
     }
 
     .chart-summary {
@@ -149,63 +389,64 @@
     }
 
     .summary-box {
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 1px solid #e2e8f0;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
         border-radius: 18px;
         padding: 16px;
     }
 
     .summary-box-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        margin-bottom: 8px;
         display: block;
+        margin-bottom: 8px;
+        color: #667085;
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 950;
     }
 
     .summary-box-value {
-        font-size: 22px;
-        font-weight: 800;
-        color: #0f172a;
+        color: #101828;
+        font-size: 1.55rem;
+        font-weight: 950;
+        letter-spacing: -0.04em;
     }
 
     .bars-stage {
-        height: 260px;
+        height: 270px;
         display: flex;
         align-items: end;
         justify-content: space-between;
         gap: 14px;
-        padding: 18px 10px 6px;
-        border-radius: 20px;
+        padding: 18px 12px 10px;
+        border-radius: 22px;
         background:
-            linear-gradient(to top, rgba(148,163,184,0.08) 1px, transparent 1px);
-        background-size: 100% 52px;
-        border: 1px solid #e2e8f0;
+            linear-gradient(to top, rgba(0, 122, 77, 0.08) 1px, transparent 1px),
+            #f9fbfc;
+        background-size: 100% 54px;
+        border: 1px solid #e7edf0;
     }
 
     .bar-col {
         flex: 1;
-        min-width: 0;
+        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: end;
         gap: 10px;
-        height: 100%;
+        min-width: 38px;
     }
 
     .bar-value {
-        font-size: 12px;
-        font-weight: 800;
-        color: #334155;
-        min-height: 18px;
+        color: #101828;
+        font-size: 0.78rem;
+        font-weight: 950;
     }
 
     .bar-track {
         width: 100%;
-        max-width: 56px;
+        max-width: 54px;
         height: 180px;
         display: flex;
         align-items: end;
@@ -215,59 +456,102 @@
     .bar-fill {
         width: 100%;
         height: 0;
-        border-radius: 16px 16px 6px 6px;
-        background: linear-gradient(180deg, #60a5fa 0%, #2563eb 60%, #1d4ed8 100%);
-        box-shadow: 0 10px 18px rgba(37, 99, 235, 0.24);
+        border-radius: 18px 18px 7px 7px;
+        background: linear-gradient(180deg, #19a974, #007a4d);
+        box-shadow: 0 12px 24px rgba(0, 122, 77, 0.18);
         transition: height 0.9s ease;
     }
 
     .bar-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 850;
         text-align: center;
-    }
-
-    .recent-panel {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
     }
 
     .recent-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
     }
 
     .recent-card {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid #e2e8f0;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
         border-radius: 18px;
         padding: 18px;
+        transition: 0.22s ease;
+    }
+
+    .recent-card:hover {
+        transform: translateY(-2px);
+        background: #ffffff;
+        box-shadow: 0 12px 26px rgba(16, 24, 40, 0.07);
     }
 
     .recent-title {
-        font-size: 17px;
-        font-weight: 800;
-        color: #0f172a;
         margin-bottom: 10px;
+        color: #101828;
+        font-size: 1rem;
+        line-height: 1.4;
+        font-weight: 950;
     }
 
-    .recent-meta {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 6px;
+    .recent-meta,
+    .empty-note {
+        color: #667085;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        font-weight: 700;
     }
 
     .empty-note {
-        color: #64748b;
-        font-size: 14px;
+        margin: 0;
+        padding: 18px;
+        border-radius: 18px;
+        background: #f9fbfc;
+        border: 1px dashed #dce6eb;
     }
 
-    @media (max-width: 1100px) {
+    .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: 0.55s ease;
+    }
+
+    .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 1120px) {
+        .reports-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .reports-sidebar {
+            position: static;
+            min-height: auto;
+        }
+
+        .reports-brand {
+            display: none;
+        }
+
+        .reports-nav {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .reports-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .reports-nav a {
+            min-width: max-content;
+        }
+
         .reports-hero,
         .reports-main,
         .recent-grid,
@@ -275,144 +559,285 @@
             grid-template-columns: 1fr;
         }
     }
+
+    @media (max-width: 680px) {
+        .main-container {
+            padding: 0;
+        }
+
+        .reports-page {
+            min-height: 100vh;
+        }
+
+        .reports-shell,
+        .reports-content {
+            gap: 16px;
+        }
+
+        .reports-sidebar,
+        .reports-intro,
+        .metric-card,
+        .analytics-panel,
+        .recent-panel {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+
+        .reports-intro {
+            min-height: auto;
+            padding: 28px 18px;
+        }
+
+        .reports-intro h1 {
+            font-size: 2.8rem;
+        }
+
+        .analytics-panel,
+        .recent-panel {
+            padding: 22px 18px;
+        }
+
+        .bars-stage {
+            overflow-x: auto;
+            justify-content: flex-start;
+        }
+
+        .bar-col {
+            min-width: 62px;
+        }
+    }
 </style>
+{% endblock %}
 
-<div class="reports-hero">
-    <div class="metric-card">
-        <span class="metric-label">Applications</span>
-        <div class="metric-value">{{ total_applications }}</div>
-        <div class="metric-sub">Total simulated eCitizen submissions</div>
-    </div>
-
-    <div class="metric-card">
-        <span class="metric-label">Appointments</span>
-        <div class="metric-value">{{ total_appointments }}</div>
-        <div class="metric-sub">Total Huduma bookings created</div>
-    </div>
-
-    <div class="metric-card">
-        <span class="metric-label">Queue Tickets</span>
-        <div class="metric-value">{{ total_tickets }}</div>
-        <div class="metric-sub">Total tickets generated for service flow</div>
-    </div>
-
-    <div class="metric-card">
-        <span class="metric-label">Average Wait</span>
-        <div class="metric-value">{{ avg_wait }}</div>
-        <div class="metric-sub">Average estimated waiting minutes</div>
-    </div>
-</div>
-
-<div class="reports-main">
-    <div class="analytics-panel">
-        <div class="analytics-title">
-            <h3>Queue Status Summary</h3>
-            <span class="analytics-chip">Live Queue View</span>
-        </div>
-
-        <div class="status-stack">
-            <div class="status-card">
-                <div class="status-left">
-                    <div class="status-dot dot-tracking"></div>
-                    <div class="status-name">Tracking</div>
+{% block content %}
+<div class="reports-page" id="reportsPage">
+    <div class="reports-shell">
+        <aside class="reports-sidebar reveal">
+            <div class="reports-brand">
+                <div class="reports-logo">HB</div>
+                <div>
+                    <h3>Huduma Birth Queue</h3>
+                    <p>Staff reporting panel</p>
                 </div>
-                <div class="status-number">{{ tracking_tickets }}</div>
             </div>
 
-            <div class="status-card">
-                <div class="status-left">
-                    <div class="status-dot dot-waiting"></div>
-                    <div class="status-name">Waiting</div>
+            <div class="reports-nav">
+                <a href="{% url 'staff_dashboard' %}">Dashboard</a>
+                <a href="{% url 'application_review_list' %}">Review Applications</a>
+                <a href="{% url 'reports_dashboard' %}" class="active">Reports</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </aside>
+
+        <section class="reports-content">
+            <div class="reports-intro reveal">
+                <div class="intro-label">Staff Analytics</div>
+                <h1>Reports <span>Dashboard</span></h1>
+            </div>
+
+            <div class="reports-hero">
+                <div class="metric-card reveal">
+                    <span class="metric-label">Applications</span>
+                    <div class="metric-value count-up" data-target="{{ total_applications }}">{{ total_applications }}</div>
+                    <div class="metric-sub">eCitizen submissions</div>
                 </div>
-                <div class="status-number">{{ waiting_tickets }}</div>
-            </div>
 
-            <div class="status-card">
-                <div class="status-left">
-                    <div class="status-dot dot-called"></div>
-                    <div class="status-name">Called</div>
+                <div class="metric-card reveal">
+                    <span class="metric-label">Appointments</span>
+                    <div class="metric-value count-up" data-target="{{ total_appointments }}">{{ total_appointments }}</div>
+                    <div class="metric-sub">Huduma bookings</div>
                 </div>
-                <div class="status-number">{{ called_tickets }}</div>
-            </div>
 
-            <div class="status-card">
-                <div class="status-left">
-                    <div class="status-dot dot-service"></div>
-                    <div class="status-name">In Service</div>
+                <div class="metric-card reveal">
+                    <span class="metric-label">Tickets</span>
+                    <div class="metric-value count-up" data-target="{{ total_tickets }}">{{ total_tickets }}</div>
+                    <div class="metric-sub">Queue tickets</div>
                 </div>
-                <div class="status-number">{{ in_service_tickets }}</div>
-            </div>
 
-            <div class="status-card">
-                <div class="status-left">
-                    <div class="status-dot dot-completed"></div>
-                    <div class="status-name">Completed</div>
+                <div class="metric-card reveal">
+                    <span class="metric-label">Average Wait</span>
+                    <div class="metric-value count-up" data-target="{{ avg_wait }}">{{ avg_wait }}</div>
+                    <div class="metric-sub">Estimated minutes</div>
                 </div>
-                <div class="status-number">{{ completed_tickets }}</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="analytics-panel">
-        <div class="analytics-title">
-            <h3>Peak Hour Metrics</h3>
-            <span class="analytics-chip">Demand Pattern</span>
-        </div>
-
-        <div class="chart-summary">
-            <div class="summary-box">
-                <span class="summary-box-label">Busiest Slot</span>
-                <div class="summary-box-value">{{ busiest_slot }}</div>
             </div>
 
-            <div class="summary-box">
-                <span class="summary-box-label">Bookings in Peak Slot</span>
-                <div class="summary-box-value">{{ busiest_slot_count }}</div>
-            </div>
-        </div>
-
-        <div class="bars-stage">
-            {% for item in peak_hour_data %}
-                <div class="bar-col">
-                    <div class="bar-value">{{ item.count }}</div>
-                    <div class="bar-track">
-                        <div class="bar-fill" data-height="{{ item.percentage|floatformat:0 }}"></div>
+            <div class="reports-main">
+                <div class="analytics-panel reveal">
+                    <div class="panel-title">
+                        <h3>Queue Status</h3>
+                        <span class="analytics-chip">Live View</span>
                     </div>
-                    <div class="bar-label">{{ item.hour }}</div>
+
+                    <div class="status-stack">
+                        <div class="status-card">
+                            <div class="status-left">
+                                <div class="status-dot dot-tracking"></div>
+                                <div class="status-name">Tracking</div>
+                            </div>
+                            <div class="status-number">{{ tracking_tickets }}</div>
+                        </div>
+
+                        <div class="status-card">
+                            <div class="status-left">
+                                <div class="status-dot dot-waiting"></div>
+                                <div class="status-name">Waiting</div>
+                            </div>
+                            <div class="status-number">{{ waiting_tickets }}</div>
+                        </div>
+
+                        <div class="status-card">
+                            <div class="status-left">
+                                <div class="status-dot dot-called"></div>
+                                <div class="status-name">Called</div>
+                            </div>
+                            <div class="status-number">{{ called_tickets }}</div>
+                        </div>
+
+                        <div class="status-card">
+                            <div class="status-left">
+                                <div class="status-dot dot-service"></div>
+                                <div class="status-name">In Service</div>
+                            </div>
+                            <div class="status-number">{{ in_service_tickets }}</div>
+                        </div>
+
+                        <div class="status-card">
+                            <div class="status-left">
+                                <div class="status-dot dot-completed"></div>
+                                <div class="status-name">Completed</div>
+                            </div>
+                            <div class="status-number">{{ completed_tickets }}</div>
+                        </div>
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
+
+                <div class="analytics-panel reveal">
+                    <div class="panel-title">
+                        <h3>Peak Hours</h3>
+                        <span class="analytics-chip">Bookings</span>
+                    </div>
+
+                    <div class="chart-summary">
+                        <div class="summary-box">
+                            <span class="summary-box-label">Busiest Slot</span>
+                            <div class="summary-box-value">{{ busiest_slot }}</div>
+                        </div>
+
+                        <div class="summary-box">
+                            <span class="summary-box-label">Bookings</span>
+                            <div class="summary-box-value">{{ busiest_slot_count }}</div>
+                        </div>
+                    </div>
+
+                    <div class="bars-stage">
+                        {% for item in peak_hour_data %}
+                            <div class="bar-col">
+                                <div class="bar-value">{{ item.count }}</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" data-height="{{ item.percentage|floatformat:0 }}"></div>
+                                </div>
+                                <div class="bar-label">{{ item.hour }}</div>
+                            </div>
+                        {% empty %}
+                            <p class="empty-note">No peak hour data available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-panel reveal">
+                <div class="panel-title">
+                    <h3>Recent Tickets</h3>
+                    <span class="analytics-chip">Latest Activity</span>
+                </div>
+
+                {% if recent_tickets %}
+                    <div class="recent-grid">
+                        {% for ticket in recent_tickets %}
+                            <div class="recent-card">
+                                <div class="recent-title">{{ ticket.ticket_number }} - {{ ticket.applicant.full_name }}</div>
+                                <div class="recent-meta">Status: {{ ticket.get_current_status_display }}</div>
+                                <div class="recent-meta">Appointment Ref: {{ ticket.appointment.huduma_booking_ref }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-note">No ticket data available.</p>
+                {% endif %}
+            </div>
+        </section>
     </div>
 </div>
+{% endblock %}
 
-<div class="recent-panel">
-    <div class="analytics-title">
-        <h3>Recent Queue Tickets</h3>
-        <span class="analytics-chip">Latest Activity</span>
-    </div>
-
-    {% if recent_tickets %}
-        <div class="recent-grid">
-            {% for ticket in recent_tickets %}
-                <div class="recent-card">
-                    <div class="recent-title">{{ ticket.ticket_number }} - {{ ticket.applicant.full_name }}</div>
-                    <div class="recent-meta">Status: {{ ticket.get_current_status_display }}</div>
-                    <div class="recent-meta">Appointment Ref: {{ ticket.appointment.huduma_booking_ref }}</div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="empty-note">No ticket data available.</p>
-    {% endif %}
-</div>
-
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const bars = document.querySelectorAll('.bar-fill');
-    bars.forEach(function (bar) {
-        const h = bar.getAttribute('data-height') || '0';
-        bar.style.height = h + '%';
+    const reportsPage = document.getElementById("reportsPage");
+    const revealItems = document.querySelectorAll(".reveal");
+
+    document.addEventListener("mousemove", function (event) {
+        if (!reportsPage) return;
+
+        const x = Math.round((event.clientX / window.innerWidth) * 100);
+        const y = Math.round((event.clientY / window.innerHeight) * 100);
+
+        reportsPage.style.setProperty("--mx", x + "%");
+        reportsPage.style.setProperty("--my", y + "%");
     });
-});
+
+    const revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("show");
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach(function (item, index) {
+        item.style.transitionDelay = Math.min(index * 55, 350) + "ms";
+        revealObserver.observe(item);
+    });
+
+    function animateCount(element) {
+        const target = Number(element.dataset.target || element.textContent || 0);
+
+        if (Number.isNaN(target)) return;
+
+        let current = 0;
+        const duration = 850;
+        const startTime = performance.now();
+
+        function update(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            current = Math.round(target * progress);
+            element.textContent = current;
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                element.textContent = target;
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    document.querySelectorAll(".count-up").forEach(function (item) {
+        animateCount(item);
+    });
+
+    window.addEventListener("load", function () {
+        const bars = document.querySelectorAll(".bar-fill");
+
+        bars.forEach(function (bar, index) {
+            const height = bar.getAttribute("data-height") || "0";
+
+            setTimeout(function () {
+                bar.style.height = height + "%";
+            }, 180 + (index * 80));
+        });
+    });
 </script>
 {% endblock %}

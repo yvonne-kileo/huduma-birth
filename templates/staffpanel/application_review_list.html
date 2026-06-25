@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Review{% endblock %}
+{% block page_heading %}{% endblock %}
+{% block page_subheading %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'staff_dashboard' %}" class="review-top-btn">Back to Dashboard</a>
+<a href="{% url 'logout' %}" class="review-top-btn logout">Logout</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hero {
+        display: none !important;
+    }
+
+    body {
+        background: #f6f8fa;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .review-page {
+        min-height: 100vh;
+        padding: 24px;
+        background:
+            radial-gradient(circle at var(--mx, 85%) var(--my, 12%), rgba(0, 122, 77, 0.11), transparent 26%),
+            linear-gradient(135deg, #f6f8fa 0%, #ffffff 46%, #eef8f2 100%);
+    }
+
+    .review-top-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.84rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .review-top-btn:hover {
+        transform: translateY(-1px);
+        background: #dff4ea;
+    }
+
+    .review-top-btn.logout {
+        background: #007a4d;
+        color: #ffffff;
+        box-shadow: 0 12px 24px rgba(0, 122, 77, 0.18);
+    }
+
+    .review-shell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 22px;
+        align-items: start;
+        width: 100%;
+    }
+
+    .review-side-panel {
+        position: sticky;
+        top: 24px;
+        min-height: calc(100vh - 48px);
+        border-radius: 28px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #101828;
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16, 24, 40, 0.06);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+
+    .review-side-panel::after {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        right: -82px;
+        bottom: -92px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.08);
+    }
+
+    .review-brand {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 50px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 8px 20px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #edf2f4;
+    }
+
+    .review-logo {
+        width: 50px;
+        height: 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 17px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-weight: 950;
+    }
+
+    .review-brand h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1rem;
+        line-height: 1.15;
+        font-weight: 950;
+    }
+
+    .review-brand p {
+        margin: 5px 0 0;
+        color: #667085;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        font-weight: 650;
+    }
+
+    .review-nav-links {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        gap: 9px;
+    }
+
+    .review-nav-links a {
+        min-height: 48px;
+        padding: 0 15px;
+        border-radius: 16px;
+        color: #344054;
+        display: flex;
+        align-items: center;
+        font-size: 0.94rem;
+        font-weight: 950;
+        text-decoration: none;
+        transition: 0.22s ease;
+    }
+
+    .review-nav-links a:hover,
+    .review-nav-links a.active {
+        background: #eaf8f1;
+        color: #007a4d;
+    }
+
+    .review-content {
+        display: grid;
+        gap: 22px;
+    }
+
+    .review-intro,
+    .review-stat-card,
+    .review-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16, 24, 40, 0.06);
+        backdrop-filter: blur(18px);
+    }
+
+    .review-intro {
+        position: relative;
+        overflow: hidden;
+        min-height: 230px;
+        border-radius: 30px;
+        padding: 34px;
+    }
+
+    .review-intro::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -120px;
+        top: -140px;
+        border-radius: 50%;
+        background: rgba(0, 122, 77, 0.09);
+    }
+
+    .review-intro-inner {
+        position: relative;
+        z-index: 2;
+        max-width: 650px;
+    }
+
+    .review-label {
+        color: #007a4d;
+        font-size: 0.78rem;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .review-intro h1 {
+        margin: 12px 0 10px;
+        color: #101828;
+        font-size: clamp(2.2rem, 5vw, 4.4rem);
+        line-height: 0.98;
+        letter-spacing: -0.075em;
+        font-weight: 950;
+    }
+
+    .review-intro p {
+        margin: 0;
+        max-width: 560px;
+        color: #667085;
+        font-size: 1.05rem;
+        line-height: 1.65;
+        font-weight: 650;
+    }
+
+    .review-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .review-stat-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 22px;
+        min-height: 128px;
+    }
+
+    .review-stat-card::after {
+        content: "";
+        position: absolute;
+        right: -38px;
+        bottom: -48px;
+        width: 120px;
+        height: 120px;
+        border-radius: 34px;
+        background: #eaf8f1;
+        transform: rotate(-10deg);
+    }
+
+    .review-stat-label {
+        position: relative;
+        z-index: 2;
+        display: block;
+        margin-bottom: 12px;
+        color: #667085;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 950;
+    }
+
+    .review-stat-value {
+        position: relative;
+        z-index: 2;
+        color: #101828;
+        font-size: 2rem;
+        line-height: 1;
+        letter-spacing: -0.05em;
+        font-weight: 950;
+    }
+
+    .review-card {
+        border-radius: 26px;
+        padding: 26px;
+    }
+
+    .review-card-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .review-card-title h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.35rem;
+        letter-spacing: -0.04em;
+        font-weight: 950;
+    }
+
+    .review-tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .review-search {
+        width: min(320px, 100%);
+        height: 44px;
+        border: 1px solid #dce6eb;
+        border-radius: 15px;
+        background: #ffffff;
+        color: #101828;
+        padding: 0 14px;
+        outline: none;
+        font-size: 0.95rem;
+        font-weight: 800;
+        transition: 0.22s ease;
+    }
+
+    .review-search:focus {
+        border-color: #007a4d;
+        box-shadow: 0 0 0 4px rgba(0, 122, 77, 0.10);
+    }
+
+    .review-badge {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 13px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.78rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .application-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .application-review-card {
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+        border-radius: 22px;
+        padding: 20px;
+        transition: 0.22s ease;
+    }
+
+    .application-review-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(16, 24, 40, 0.07);
+        border-color: #dcefe6;
+    }
+
+    .review-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .detail-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #667085;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 950;
+    }
+
+    .detail-value {
+        color: #101828;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        font-weight: 850;
+        word-break: break-word;
+    }
+
+    .review-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .review-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 15px;
+        background: #007a4d;
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 950;
+        text-decoration: none;
+        box-shadow: 0 12px 24px rgba(0, 122, 77, 0.18);
+        transition: 0.22s ease;
+    }
+
+    .review-btn:hover {
+        transform: translateY(-1px);
+        background: #006641;
+    }
+
+    .muted {
+        color: #667085;
+        line-height: 1.7;
+        font-weight: 650;
+    }
+
+    .empty-filter-message {
+        display: none;
+        padding: 18px;
+        border-radius: 18px;
+        background: #fff7ed;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+        font-weight: 850;
+    }
+
+    .empty-filter-message.show {
+        display: block;
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: 0.55s ease;
+    }
+
+    .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 1100px) {
+        .review-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .review-side-panel {
+            position: static;
+            min-height: auto;
+        }
+
+        .review-brand {
+            display: none;
+        }
+
+        .review-nav-links {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .review-nav-links::-webkit-scrollbar {
+            display: none;
+        }
+
+        .review-nav-links a {
+            min-width: max-content;
+        }
+
+        .review-summary-grid,
+        .review-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 680px) {
+        .review-page {
+            padding: 0;
+        }
+
+        .review-shell,
+        .review-content {
+            gap: 16px;
+        }
+
+        .review-side-panel,
+        .review-intro,
+        .review-card {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+
+        .review-side-panel {
+            padding: 12px;
+        }
+
+        .review-intro {
+            min-height: auto;
+            padding: 28px 18px;
+        }
+
+        .review-intro h1 {
+            font-size: 2.7rem;
+        }
+
+        .review-card {
+            padding: 22px 18px;
+        }
+
+        .review-card-title {
+            align-items: stretch;
+        }
+
+        .review-tools,
+        .review-search,
+        .review-badge {
+            width: 100%;
+        }
+
+        .review-badge {
+            justify-content: center;
+        }
+
+        .review-summary-grid {
+            padding: 0 12px;
+        }
+
+        .review-stat-card {
+            border-radius: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-page" id="reviewPage">
+    <div class="review-shell">
+        <aside class="review-side-panel reveal">
+            <div class="review-brand">
+                <div class="review-logo">HB</div>
+                <div>
+                    <h3>Huduma Birth Queue</h3>
+                    <p>Smart Appointment & Queue System</p>
+                </div>
+            </div>
+
+            <div class="review-nav-links" id="reviewNav">
+                <a href="{% url 'staff_dashboard' %}">Dashboard</a>
+                <a href="{% url 'application_review_list' %}" class="active">Review Applications</a>
+                <a href="{% url 'reports_dashboard' %}">Reports</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </aside>
+
+        <section class="review-content">
+            <div class="review-intro reveal">
+                <div class="review-intro-inner">
+                    <div class="review-label">Staff Review</div>
+                    <h1>Application Review</h1>
+                    <p>Review submitted birth certificate applications and update their processing status.</p>
+                </div>
+            </div>
+
+            <div class="review-summary-grid">
+                <div class="review-stat-card reveal">
+                    <span class="review-stat-label">Applications</span>
+                    <div class="review-stat-value" data-count="{{ applications|length }}">{{ applications|length }}</div>
+                </div>
+
+                <div class="review-stat-card reveal">
+                    <span class="review-stat-label">Submitted</span>
+                    <div class="review-stat-value" data-count="{{ applications|length }}">{{ applications|length }}</div>
+                </div>
+
+                <div class="review-stat-card reveal">
+                    <span class="review-stat-label">Review Queue</span>
+                    <div class="review-stat-value">Open</div>
+                </div>
+            </div>
+
+            <div class="review-card reveal">
+                <div class="review-card-title">
+                    <h3>Submitted Applications</h3>
+
+                    <div class="review-tools">
+                        <input type="search" id="reviewSearch" class="review-search" placeholder="Search applicant or reference">
+                        <span class="review-badge" id="reviewCount">{{ applications|length }} record(s)</span>
+                    </div>
+                </div>
+
+                {% if applications %}
+                    <div class="application-list" id="applicationList">
+                        {% for application in applications %}
+                            <div class="application-review-card"
+                                 data-search="{{ application.applicant.full_name }} {{ application.ecitizen_application_ref }} {{ application.get_processing_status_display }} {{ application.get_document_status_display }} {{ application.service_category }}">
+                                <div class="review-info-grid">
+                                    <div>
+                                        <span class="detail-label">Applicant</span>
+                                        <span class="detail-value">{{ application.applicant.full_name }}</span>
+                                    </div>
+
+                                    <div>
+                                        <span class="detail-label">Reference</span>
+                                        <span class="detail-value">{{ application.ecitizen_application_ref|default:"Draft" }}</span>
+                                    </div>
+
+                                    <div>
+                                        <span class="detail-label">Processing</span>
+                                        <span class="detail-value">{{ application.get_processing_status_display }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="review-info-grid" style="margin-top: 16px;">
+                                    <div>
+                                        <span class="detail-label">Documents</span>
+                                        <span class="detail-value">{{ application.get_document_status_display }}</span>
+                                    </div>
+
+                                    <div>
+                                        <span class="detail-label">Service</span>
+                                        <span class="detail-value">{{ application.service_category }}</span>
+                                    </div>
+
+                                    <div>
+                                        <span class="detail-label">Submitted</span>
+                                        <span class="detail-value">{{ application.submitted_at }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="review-actions">
+                                    <a href="{% url 'application_review_update' application.id %}" class="review-btn">Review Application</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="empty-filter-message" id="emptyFilterMessage">
+                        No matching applications found.
+                    </div>
+                {% else %}
+                    <p class="muted">No applications found.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const reviewPage = document.getElementById("reviewPage");
+    const revealItems = document.querySelectorAll(".reveal");
+    const searchInput = document.getElementById("reviewSearch");
+    const applicationCards = document.querySelectorAll(".application-review-card");
+    const reviewCount = document.getElementById("reviewCount");
+    const emptyFilterMessage = document.getElementById("emptyFilterMessage");
+
+    document.addEventListener("mousemove", function (event) {
+        if (!reviewPage) return;
+
+        const x = Math.round((event.clientX / window.innerWidth) * 100);
+        const y = Math.round((event.clientY / window.innerHeight) * 100);
+
+        reviewPage.style.setProperty("--mx", x + "%");
+        reviewPage.style.setProperty("--my", y + "%");
+    });
+
+    const revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("show");
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach(function (item, index) {
+        item.style.transitionDelay = Math.min(index * 55, 350) + "ms";
+        revealObserver.observe(item);
+    });
+
+    function filterApplications() {
+        if (!searchInput) return;
+
+        const query = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        applicationCards.forEach(function (card) {
+            const searchText = (card.dataset.search || "").toLowerCase();
+
+            if (searchText.includes(query)) {
+                card.style.display = "block";
+                visibleCount += 1;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        if (reviewCount) {
+            reviewCount.textContent = visibleCount + " record(s)";
+        }
+
+        if (emptyFilterMessage) {
+            emptyFilterMessage.classList.toggle("show", visibleCount === 0 && applicationCards.length > 0);
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", filterApplications);
+    }
+
+    document.querySelectorAll(".review-nav-links a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            document.querySelectorAll(".review-nav-links a").forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+            link.classList.add("active");
+        });
+    });
+</script>
+{% endblock %}
