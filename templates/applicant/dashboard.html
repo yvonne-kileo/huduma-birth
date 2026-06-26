@@ -1142,7 +1142,7 @@
         }
     }
 
-    @media (max-width: 680px) {
+        @media (max-width: 680px) {
         .dashboard-page {
             padding: 0;
         }
@@ -1248,6 +1248,103 @@
             padding-bottom: 0;
         }
         }
+        @media (max-width: 680px) {
+        .queue-card {
+            overflow: visible;
+        }
+
+        .queue-body {
+            gap: 18px;
+        }
+
+        .route-shell {
+            min-height: 230px;
+            border-radius: 20px;
+        }
+
+        .route-line {
+            left: 9%;
+            right: 18%;
+            top: 60%;
+            border-top-width: 4px;
+        }
+
+        .route-step {
+            top: 28% !important;
+            min-width: 64px;
+            padding: 8px 9px;
+            font-size: 0.68rem;
+            border-radius: 13px;
+        }
+
+        .counter-box {
+            right: 3%;
+            top: 38%;
+            width: 94px;
+            min-height: 86px;
+            padding: 12px 8px;
+            border-radius: 17px;
+            font-size: 0.74rem;
+        }
+
+        .counter-box span {
+            font-size: 0.66rem;
+        }
+
+        .delivery-marker-tag,
+        .band-you-tag {
+            font-size: 0.66rem;
+            padding: 5px 8px;
+        }
+
+        .delivery-marker-pulse,
+        .band-you-pulse {
+            width: 36px;
+            height: 36px;
+        }
+
+        .delivery-marker-core,
+        .band-you-core {
+            width: 19px;
+            height: 19px;
+        }
+
+        .band-queue-card {
+            padding: 18px;
+            border-radius: 20px;
+        }
+
+        .band-route-shell {
+            min-height: 155px;
+            overflow-x: hidden;
+        }
+
+        .band-route-line,
+        .band-flow-layer,
+        .band-segments {
+            left: 18px;
+            right: 18px;
+        }
+
+        .band-counter {
+            right: 8px;
+        }
+
+        .stage-strip {
+            grid-template-columns: repeat(5, minmax(88px, 1fr));
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: none;
+        }
+
+        .stage-strip::-webkit-scrollbar {
+            display: none;
+        }
+
+        .premium-stage {
+            min-width: 88px;
+        }
+        }
         .invoice-actions {
         margin-top: 20px;
         }
@@ -1272,6 +1369,7 @@
             transform: translateY(-2px);
             box-shadow: 0 18px 34px rgba(0, 122, 77, 0.24);
         }
+
 </style>
 {% endblock %}
 
@@ -1492,18 +1590,22 @@
                                 <div class="premium-stage-dot"></div>
                                 <span>Tracking</span>
                             </div>
-                            <div class="premium-stage" id="stage-arrival">
-                                <div class="premium-stage-dot"></div>
-                                <span>Arrival</span>
-                            </div>
+
                             <div class="premium-stage" id="stage-waiting">
                                 <div class="premium-stage-dot"></div>
                                 <span>Waiting</span>
                             </div>
+
+                            <div class="premium-stage" id="stage-arrival">
+                                <div class="premium-stage-dot"></div>
+                                <span>Called</span>
+                            </div>
+
                             <div class="premium-stage" id="stage-counter">
                                 <div class="premium-stage-dot"></div>
-                                <span>Counter</span>
+                                <span>In Service</span>
                             </div>
+
                             <div class="premium-stage" id="stage-completed">
                                 <div class="premium-stage-dot"></div>
                                 <span>Done</span>
@@ -1648,8 +1750,8 @@ revealItems.forEach(function (item, index) {
 function setStageState(status) {
     const stages = {
         tracking: document.getElementById('stage-tracking'),
-        arrival: document.getElementById('stage-arrival'),
         waiting: document.getElementById('stage-waiting'),
+        called: document.getElementById('stage-arrival'),
         counter: document.getElementById('stage-counter'),
         completed: document.getElementById('stage-completed')
     };
@@ -1661,19 +1763,30 @@ function setStageState(status) {
 
     if (status === 'tracking') {
         stages.tracking.classList.add('current');
-    } else if (status === 'waiting') {
+    }
+
+    else if (status === 'waiting') {
         stages.tracking.classList.add('active');
-        stages.arrival.classList.add('active');
         stages.waiting.classList.add('current');
-    } else if (status === 'called' || status === 'in_service') {
+    }
+
+    else if (status === 'called') {
         stages.tracking.classList.add('active');
-        stages.arrival.classList.add('active');
         stages.waiting.classList.add('active');
+        stages.called.classList.add('current');
+    }
+
+    else if (status === 'in_service') {
+        stages.tracking.classList.add('active');
+        stages.waiting.classList.add('active');
+        stages.called.classList.add('active');
         stages.counter.classList.add('current');
-    } else if (status === 'completed') {
+    }
+
+    else if (status === 'completed') {
         stages.tracking.classList.add('active');
-        stages.arrival.classList.add('active');
         stages.waiting.classList.add('active');
+        stages.called.classList.add('active');
         stages.counter.classList.add('active');
         stages.completed.classList.add('current');
     }
@@ -1744,17 +1857,27 @@ function renderSmallQueueMap(data) {
     stopsContainer.innerHTML = '';
 
     if (data.current_status === 'tracking') {
-        moveMarkerPercent(points[0].x, points[0].y);
-        caption.textContent = 'Remote tracking.';
+        moveMarkerPercent(10, 58);
+        caption.textContent = 'Your appointment is being tracked. Confirm arrival when you reach Huduma Centre.';
         setCounterVisualState('default');
         return;
     }
 
     if (data.current_status === 'waiting') {
-        const totalAheadToShow = Math.min(data.people_ahead || 0, 6);
+        const peopleAhead = data.people_ahead || 0;
+        const dotsToShow = Math.min(peopleAhead, 6);
 
-        for (let i = 0; i < totalAheadToShow; i++) {
-            const point = points[6 - totalAheadToShow + i + 1] || points[6];
+        const waitingZonePoints = [
+            { x: 32, y: 58 },
+            { x: 40, y: 58 },
+            { x: 48, y: 58 },
+            { x: 56, y: 58 },
+            { x: 64, y: 58 },
+            { x: 72, y: 58 }
+        ];
+
+        for (let i = 0; i < dotsToShow; i++) {
+            const point = waitingZonePoints[i] || waitingZonePoints[waitingZonePoints.length - 1];
 
             const stop = document.createElement('div');
             stop.className = 'delivery-stop';
@@ -1768,37 +1891,44 @@ function renderSmallQueueMap(data) {
             stopsContainer.appendChild(stop);
         }
 
-        const myPointIndex = Math.max(3, 6 - totalAheadToShow);
-        const myPoint = points[myPointIndex];
-        moveMarkerPercent(myPoint.x, myPoint.y);
+        /*
+            Keep applicant marker in the waiting area.
+            Do not move it to the counter while status is only waiting.
+        */
+        moveMarkerPercent(24, 58);
 
-        caption.textContent = 'Queue moving.';
+        if (peopleAhead > 0) {
+            caption.textContent = `You are waiting. ${peopleAhead} applicant(s) ahead of you.`;
+        } else {
+            caption.textContent = 'You are next in line. Wait until staff calls you.';
+        }
+
         setCounterVisualState('default');
         return;
     }
 
     if (data.current_status === 'called') {
-        moveMarkerPercent(points[8].x, points[8].y);
-        caption.textContent = 'Proceed to counter.';
+        moveMarkerPercent(82, 50);
+        caption.textContent = 'You have been called. Proceed to the counter.';
         setCounterVisualState('called');
         return;
     }
 
     if (data.current_status === 'in_service') {
-        moveMarkerPercent(points[10].x, points[10].y);
-        caption.textContent = 'Now serving.';
+        moveMarkerPercent(90, 40);
+        caption.textContent = 'You are currently being served at the counter.';
         setCounterVisualState('in_service');
         return;
     }
 
     if (data.current_status === 'completed') {
-        moveMarkerPercent(points[10].x, points[10].y);
-        caption.textContent = 'Completed.';
+        moveMarkerPercent(90, 40);
+        caption.textContent = 'Your counter service is completed.';
         setCounterVisualState('completed');
         return;
     }
 
-    moveMarkerPercent(points[0].x, points[0].y);
+    moveMarkerPercent(10, 58);
     caption.textContent = 'Queue updates appear here.';
     setCounterVisualState('default');
 }
@@ -1883,14 +2013,24 @@ function applyQueueData(data) {
     const smallView = document.getElementById('small-queue-view');
     const largeView = document.getElementById('large-queue-view');
 
-    if (data.large_queue_mode && data.current_status === 'waiting') {
-        smallView.style.display = 'none';
-        largeView.style.display = 'block';
-        renderLargeQueueView(data);
+    const shouldUseLargeQueueView =
+    data.current_status === 'waiting' &&
+    (
+        data.large_queue_mode ||
+        (data.queue_total || 0) > 12 ||
+        (data.people_ahead || 0) > 6
+    );
+
+
+    if (shouldUseLargeQueueView) {
+    smallView.style.display = 'none';
+    largeView.style.display = 'block';
+    renderLargeQueueView(data);
+
     } else {
-        smallView.style.display = 'block';
-        largeView.style.display = 'none';
-        renderSmallQueueMap(data);
+    smallView.style.display = 'block';
+    largeView.style.display = 'none';
+    renderSmallQueueMap(data);
     }
 
     if (data.arrival_confirmed || data.current_status !== 'tracking') {
