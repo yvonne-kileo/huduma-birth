@@ -193,7 +193,57 @@ def confirm_arrival(request, ticket_id):
     messages.success(request, 'Arrival confirmed.')
     return redirect('applicant_dashboard')
 
+def create_queue_milestone_notification(ticket, position, people_ahead):
+    if not ticket or not ticket.applicant:
+        return
 
+    if not position:
+        return
+
+    if ticket.current_status != 'waiting':
+        return
+
+    milestone = None
+    title = ''
+    message = ''
+
+    if position == 1:
+        milestone = 'next'
+        title = 'You are next'
+        message = 'You are next in line. Please stay ready and wait to be called.'
+
+    elif position <= 3:
+        milestone = 'top-3'
+        title = 'You are almost at the counter'
+        message = f'You are number {position} in the queue. Please stay nearby.'
+
+    elif position <= 5:
+        milestone = 'top-5'
+        title = 'Queue moving'
+        message = f'You are now in the top 5. There are {people_ahead} applicant(s) ahead of you.'
+
+    elif position <= 10:
+        milestone = 'top-10'
+        title = 'Queue update'
+        message = f'You are now in the top 10. There are {people_ahead} applicant(s) ahead of you.'
+
+    else:
+        milestone = 'initial-position'
+        title = 'Queue position confirmed'
+        message = f'You are number {position} in the queue. There are {people_ahead} applicant(s) ahead of you.'
+
+    metadata_key = f'queue-{milestone}-{ticket.id}'
+
+    Notification.objects.get_or_create(
+        applicant=ticket.applicant,
+        metadata_key=metadata_key,
+        defaults={
+            'notification_type': 'queue',
+            'title': title,
+            'message': message,
+            'is_read': False,
+        }
+    )
 @login_required
 def applicant_queue_status(request):
     if not hasattr(request.user, 'applicant_profile'):
@@ -222,6 +272,8 @@ def applicant_queue_status(request):
             if ticket.id == queue_ticket.id:
                 position = index + 1
                 people_ahead = index
+
+    create_queue_milestone_notification(queue_ticket, position, people_ahead)
 
     if queue_ticket.current_status == 'waiting' and queue_ticket.arrival_confirmed:
         estimated_wait = people_ahead * AVERAGE_SERVICE_MINUTES
