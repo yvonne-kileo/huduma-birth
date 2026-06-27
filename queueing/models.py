@@ -191,12 +191,15 @@ class QueueTicket(models.Model):
         ('in_service', 'In Service'),
         ('completed', 'Completed'),
         ('missed', 'Missed'),
+        ('skipped', 'Skipped / No Response'),
     ]
     current_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='tracking')
 
     arrival_confirmed = models.BooleanField(default=False)
     joined_queue_at = models.DateTimeField(blank=True, null=True)
     estimated_wait_minutes = models.PositiveIntegerField(default=0)
+    called_at = models.DateTimeField(null=True, blank=True)
+    skipped_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.ticket_number

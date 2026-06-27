@@ -261,7 +261,39 @@ def applicant_queue_status(request):
     people_ahead = 0
     queue_list = []
 
-    if queue_ticket.arrival_confirmed and queue_ticket.current_status in ['waiting', 'called', 'in_service']:
+    # This tells the frontend whether the applicant should see their exact queue position.
+    # Exact position should only show after confirming arrival.
+    show_personal_queue = (
+        queue_ticket.arrival_confirmed and
+        queue_ticket.current_status in ['waiting', 'called', 'in_service']
+    )
+
+    # Queue preview before arrival confirmation.
+    # This helps the applicant know if the centre is crowded before leaving home.
+    checked_in_waiting_count = sum(
+        1 for ticket in active_queue
+        if ticket.current_status == 'waiting'
+    )
+
+    checked_in_active_count = sum(
+        1 for ticket in active_queue
+        if ticket.current_status in ['waiting', 'called', 'in_service']
+    )
+
+    preview_estimated_wait = checked_in_waiting_count * AVERAGE_SERVICE_MINUTES
+
+    if checked_in_waiting_count >= 15:
+        queue_load = "High"
+        queue_advice = "The queue is currently busy. To reduce overcrowding, come closer to your appointment time."
+    elif checked_in_waiting_count >= 6:
+        queue_load = "Moderate"
+        queue_advice = "There are several applicants already checked in. Plan your arrival carefully."
+    else:
+        queue_load = "Low"
+        queue_advice = "The queue is currently light. You can proceed as planned."
+
+    # Exact queue position only after arrival confirmation.
+    if show_personal_queue:
         for index, ticket in enumerate(active_queue):
             queue_list.append({
                 'id': ticket.id,
@@ -275,6 +307,14 @@ def applicant_queue_status(request):
 
     create_queue_milestone_notification(queue_ticket, position, people_ahead)
 
+    # Grace period countdown when applicant has been called.
+    grace_seconds_remaining = 0
+
+    if queue_ticket.current_status == 'called' and queue_ticket.called_at:
+        grace_end_time = queue_ticket.called_at + timezone.timedelta(minutes=3)
+        remaining_seconds = int((grace_end_time - timezone.now()).total_seconds())
+        grace_seconds_remaining = max(remaining_seconds, 0)
+
     if queue_ticket.current_status == 'waiting' and queue_ticket.arrival_confirmed:
         estimated_wait = people_ahead * AVERAGE_SERVICE_MINUTES
     elif queue_ticket.current_status == 'called':
@@ -282,6 +322,8 @@ def applicant_queue_status(request):
     elif queue_ticket.current_status == 'in_service':
         estimated_wait = 0
     elif queue_ticket.current_status == 'completed':
+        estimated_wait = 0
+    elif queue_ticket.current_status == 'skipped':
         estimated_wait = 0
     else:
         estimated_wait = queue_ticket.estimated_wait_minutes or 0
@@ -295,12 +337,35 @@ def applicant_queue_status(request):
         'current_status': queue_ticket.current_status,
         'current_status_display': queue_ticket.get_current_status_display(),
         'arrival_confirmed': queue_ticket.arrival_confirmed,
+
+        # Exact personal queue tracking.
+        'show_personal_queue': show_personal_queue,
         'estimated_wait_minutes': estimated_wait,
         'position': position,
         'people_ahead': people_ahead,
         'queue_total': len(active_queue),
         'queue_list': queue_list,
         'large_queue_mode': len(active_queue) > 10,
+
+        # Called applicant grace period.
+        'grace_seconds_remaining': grace_seconds_remaining,
+
+        # Queue preview before confirming arrival.
+        'queue_preview': {
+            'queue_load': queue_load,
+            'checked_in_active_count': checked_in_active_count,
+            'checked_in_waiting_count': checked_in_waiting_count,
+            'preview_estimated_wait': preview_estimated_wait,
+            'queue_advice': queue_advice,
+        },
+
+        # Message for skipped applicants.
+        'skipped_message': (
+            'You were called but did not report to the counter within the grace period. '
+            'Please see staff to rejoin the queue.'
+            if queue_ticket.current_status == 'skipped'
+            else ''
+        ),
     }
 
     return JsonResponse(data)

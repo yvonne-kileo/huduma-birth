@@ -1,13 +1,19 @@
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.urls import reverse
+from django.utils import timezone
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from queueing.models import Application, QueueTicket, QueueStatusHistory, Notification
+
+
+CALL_GRACE_MINUTES = 3
 
 
 def create_notification(
@@ -61,10 +67,22 @@ def get_applicant_dashboard_link():
         return ''
 
 
+def get_grace_seconds_remaining(ticket):
+    if not ticket.called_at:
+        return 0
+
+    grace_end_time = ticket.called_at + timedelta(minutes=CALL_GRACE_MINUTES)
+    remaining_seconds = int((grace_end_time - timezone.now()).total_seconds())
+
+    return max(remaining_seconds, 0)
+
+
 def build_queue_update_data(ticket):
     waiting_tickets = list(
-        QueueTicket.objects.filter(current_status='waiting')
-        .order_by('joined_queue_at')
+        QueueTicket.objects.filter(
+            arrival_confirmed=True,
+            current_status='waiting'
+        ).order_by('joined_queue_at', 'id')
     )
 
     position = None
@@ -129,8 +147,9 @@ def push_queue_update(ticket):
 
 def push_waiting_queue_updates():
     waiting_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
         current_status='waiting'
-    ).order_by('joined_queue_at')
+    ).order_by('joined_queue_at', 'id')
 
     for ticket in waiting_tickets:
         push_queue_update(ticket)
@@ -219,22 +238,31 @@ def staff_dashboard(request):
     officer = request.user.service_officer_profile
 
     waiting_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
         current_status='waiting'
-    ).order_by('joined_queue_at')
+    ).order_by('joined_queue_at', 'id')
 
     called_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
         current_status='called'
-    )
+    ).order_by('called_at', 'id')
 
     in_service_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
         current_status='in_service'
-    )
+    ).order_by('id')
+
+    skipped_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='skipped'
+    ).order_by('-skipped_at', '-id')
 
     context = {
         'officer': officer,
         'waiting_tickets': waiting_tickets,
         'called_tickets': called_tickets,
         'in_service_tickets': in_service_tickets,
+        'skipped_tickets': skipped_tickets,
         'is_applicant': False,
         'is_staff_user': True,
     }
@@ -251,31 +279,85 @@ def call_next(request, ticket_id):
     officer = request.user.service_officer_profile
     ticket = get_object_or_404(QueueTicket, id=ticket_id)
 
+    if not ticket.arrival_confirmed:
+        messages.error(request, "This applicant has not confirmed arrival yet.")
+        return redirect('staff_dashboard')
+
+    if ticket.current_status != 'waiting':
+        messages.error(request, "Only a waiting applicant can be called.")
+        return redirect('staff_dashboard')
+
+    already_called_ticket = (
+        QueueTicket.objects
+        .filter(
+            arrival_confirmed=True,
+            current_status='called'
+        )
+        .order_by('called_at', 'id')
+        .first()
+    )
+
+    if already_called_ticket:
+        remaining_seconds = get_grace_seconds_remaining(already_called_ticket)
+
+        if remaining_seconds > 0:
+            messages.warning(
+                request,
+                f"{already_called_ticket.ticket_number} has already been called. "
+                f"Wait {remaining_seconds} seconds, then start service or skip the applicant."
+            )
+            return redirect('staff_dashboard')
+
+        messages.warning(
+            request,
+            f"{already_called_ticket.ticket_number} has already been called and the grace period has ended. "
+            f"Mark the applicant as skipped before calling the next person."
+        )
+        return redirect('staff_dashboard')
+
+    first_waiting_ticket = (
+        QueueTicket.objects
+        .filter(
+            arrival_confirmed=True,
+            current_status='waiting'
+        )
+        .order_by('joined_queue_at', 'id')
+        .first()
+    )
+
+    if not first_waiting_ticket:
+        messages.error(request, "There is no waiting applicant to call.")
+        return redirect('staff_dashboard')
+
+    if ticket.id != first_waiting_ticket.id:
+        messages.error(request, "You can only call the first applicant in the waiting queue.")
+        return redirect('staff_dashboard')
+
     ticket.current_status = 'called'
-    ticket.save()
+    ticket.called_at = timezone.now()
+    ticket.estimated_wait_minutes = 1
+    ticket.save(update_fields=['current_status', 'called_at', 'estimated_wait_minutes'])
 
     QueueStatusHistory.objects.create(
         queue_ticket=ticket,
         updated_by=officer,
         status='called',
-        notes='Applicant called to counter.'
+        notes='Applicant called to the counter.'
     )
 
     create_notification(
         applicant=ticket.applicant,
         title='You have been called',
-        message=f'Your ticket {ticket.ticket_number} has been called. Please proceed to the service counter.',
+        message=f'Your ticket {ticket.ticket_number} has been called. Please proceed to the service counter within 3 minutes.',
         notification_type='queue',
         link=get_applicant_dashboard_link(),
         metadata_key=f'queue-called-{ticket.id}'
     )
 
     push_queue_update(ticket)
-
-    # After one applicant is called, the remaining waiting applicants move forward.
     push_waiting_queue_updates()
 
-    messages.success(request, f'Ticket {ticket.ticket_number} called.')
+    messages.success(request, f"{ticket.ticket_number} has been called.")
     return redirect('staff_dashboard')
 
 
@@ -288,8 +370,13 @@ def start_service(request, ticket_id):
     officer = request.user.service_officer_profile
     ticket = get_object_or_404(QueueTicket, id=ticket_id)
 
+    if ticket.current_status != 'called':
+        messages.error(request, "Only a called applicant can start service.")
+        return redirect('staff_dashboard')
+
     ticket.current_status = 'in_service'
-    ticket.save()
+    ticket.estimated_wait_minutes = 0
+    ticket.save(update_fields=['current_status', 'estimated_wait_minutes'])
 
     QueueStatusHistory.objects.create(
         queue_ticket=ticket,
@@ -309,6 +396,7 @@ def start_service(request, ticket_id):
 
     push_queue_update(ticket)
 
+    messages.success(request, f"Service started for {ticket.ticket_number}.")
     return redirect('staff_dashboard')
 
 
@@ -321,8 +409,13 @@ def complete_service(request, ticket_id):
     officer = request.user.service_officer_profile
     ticket = get_object_or_404(QueueTicket, id=ticket_id)
 
+    if ticket.current_status != 'in_service':
+        messages.error(request, "Only an applicant in service can be completed.")
+        return redirect('staff_dashboard')
+
     ticket.current_status = 'completed'
-    ticket.save()
+    ticket.estimated_wait_minutes = 0
+    ticket.save(update_fields=['current_status', 'estimated_wait_minutes'])
 
     QueueStatusHistory.objects.create(
         queue_ticket=ticket,
@@ -342,6 +435,114 @@ def complete_service(request, ticket_id):
 
     push_queue_update(ticket)
 
+    messages.success(request, f"{ticket.ticket_number} has been completed.")
+    return redirect('staff_dashboard')
+
+
+@login_required
+def skip_ticket(request, ticket_id):
+    if not hasattr(request.user, 'service_officer_profile'):
+        messages.error(request, 'You do not have staff access.')
+        return redirect('login')
+
+    officer = request.user.service_officer_profile
+    ticket = get_object_or_404(QueueTicket, id=ticket_id)
+
+    if ticket.current_status != 'called':
+        messages.error(request, "Only a called applicant can be skipped.")
+        return redirect('staff_dashboard')
+
+    remaining_seconds = get_grace_seconds_remaining(ticket)
+
+    if remaining_seconds > 0:
+        messages.warning(
+            request,
+            f"You can skip {ticket.ticket_number} after {remaining_seconds} seconds."
+        )
+        return redirect('staff_dashboard')
+
+    ticket.current_status = 'skipped'
+    ticket.skipped_at = timezone.now()
+    ticket.estimated_wait_minutes = 0
+    ticket.save(update_fields=['current_status', 'skipped_at', 'estimated_wait_minutes'])
+
+    QueueStatusHistory.objects.create(
+        queue_ticket=ticket,
+        updated_by=officer,
+        status='skipped',
+        notes='Applicant was called but did not report to the counter within the grace period.'
+    )
+
+    create_notification(
+        applicant=ticket.applicant,
+        title='You were skipped',
+        message=(
+            f'Your ticket {ticket.ticket_number} was called, but you did not report to the counter '
+            f'within the grace period. Please see staff to rejoin the queue.'
+        ),
+        notification_type='queue',
+        link=get_applicant_dashboard_link(),
+        metadata_key=f'queue-skipped-{ticket.id}'
+    )
+
+    push_queue_update(ticket)
+    push_waiting_queue_updates()
+
+    messages.success(request, f"{ticket.ticket_number} has been marked as skipped.")
+    return redirect('staff_dashboard')
+
+
+@login_required
+def rejoin_skipped_ticket(request, ticket_id):
+    if not hasattr(request.user, 'service_officer_profile'):
+        messages.error(request, 'You do not have staff access.')
+        return redirect('login')
+
+    officer = request.user.service_officer_profile
+    ticket = get_object_or_404(QueueTicket, id=ticket_id)
+
+    if ticket.current_status != 'skipped':
+        messages.error(request, "Only skipped applicants can rejoin the queue.")
+        return redirect('staff_dashboard')
+
+    ticket.current_status = 'waiting'
+    ticket.arrival_confirmed = True
+    ticket.joined_queue_at = timezone.now()
+    ticket.called_at = None
+    ticket.skipped_at = None
+    ticket.estimated_wait_minutes = 0
+    ticket.save(update_fields=[
+        'current_status',
+        'arrival_confirmed',
+        'joined_queue_at',
+        'called_at',
+        'skipped_at',
+        'estimated_wait_minutes',
+    ])
+
+    QueueStatusHistory.objects.create(
+        queue_ticket=ticket,
+        updated_by=officer,
+        status='waiting',
+        notes='Skipped applicant rejoined the queue at the end.'
+    )
+
+    create_notification(
+        applicant=ticket.applicant,
+        title='You have rejoined the queue',
+        message=(
+            f'Your ticket {ticket.ticket_number} has been added back to the waiting queue. '
+            f'You will be served according to the new queue order.'
+        ),
+        notification_type='queue',
+        link=get_applicant_dashboard_link(),
+        metadata_key=f'queue-rejoined-{ticket.id}-{int(timezone.now().timestamp())}'
+    )
+
+    push_queue_update(ticket)
+    push_waiting_queue_updates()
+
+    messages.success(request, f"{ticket.ticket_number} has rejoined the queue at the end.")
     return redirect('staff_dashboard')
 
 
@@ -350,26 +551,49 @@ def staff_queue_data(request):
     if not hasattr(request.user, 'service_officer_profile'):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    waiting_tickets = list(
-        QueueTicket.objects.filter(current_status='waiting')
-        .order_by('joined_queue_at')
-        .values('id', 'ticket_number', 'applicant__full_name')
-    )
+    waiting_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='waiting'
+    ).order_by('joined_queue_at', 'id')
 
-    called_tickets = list(
-        QueueTicket.objects.filter(current_status='called')
-        .values('id', 'ticket_number', 'applicant__full_name')
-    )
+    called_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='called'
+    ).order_by('called_at', 'id')
 
-    in_service_tickets = list(
-        QueueTicket.objects.filter(current_status='in_service')
-        .values('id', 'ticket_number', 'applicant__full_name')
-    )
+    in_service_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='in_service'
+    ).order_by('id')
+
+    skipped_tickets = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='skipped'
+    ).order_by('-skipped_at', '-id')
+
+    def serialize_ticket(ticket):
+        return {
+            'id': ticket.id,
+            'ticket_number': ticket.ticket_number,
+            'applicant__full_name': ticket.applicant.full_name,
+        }
+
+    def serialize_called_ticket(ticket):
+        remaining_seconds = get_grace_seconds_remaining(ticket)
+
+        return {
+            'id': ticket.id,
+            'ticket_number': ticket.ticket_number,
+            'applicant__full_name': ticket.applicant.full_name,
+            'grace_seconds_remaining': remaining_seconds,
+            'can_skip': remaining_seconds == 0,
+        }
 
     return JsonResponse({
-        'waiting_tickets': waiting_tickets,
-        'called_tickets': called_tickets,
-        'in_service_tickets': in_service_tickets,
+        'waiting_tickets': [serialize_ticket(ticket) for ticket in waiting_tickets],
+        'called_tickets': [serialize_called_ticket(ticket) for ticket in called_tickets],
+        'in_service_tickets': [serialize_ticket(ticket) for ticket in in_service_tickets],
+        'skipped_tickets': [serialize_ticket(ticket) for ticket in skipped_tickets],
     })
 
 

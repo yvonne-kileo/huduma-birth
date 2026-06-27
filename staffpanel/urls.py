@@ -10,5 +10,6 @@ urlpatterns = [
     path('start/<int:ticket_id>/', views.start_service, name='start_service'),
     path('complete/<int:ticket_id>/', views.complete_service, name='complete_service'),
     path('queue-data/', views.staff_queue_data, name='staff_queue_data'),
-    
+    path('skip/<int:ticket_id>/', views.skip_ticket, name='skip_ticket'),
+    path('rejoin/<int:ticket_id>/', views.rejoin_skipped_ticket, name='rejoin_skipped_ticket'),   
 ]
