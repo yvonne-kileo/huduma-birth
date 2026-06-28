@@ -684,10 +684,21 @@
                 </div>
 
                 <div class="btn-row">
-                    <a href="{% url 'application_review_action' application.id 'under_review' %}" class="review-btn btn-under-review">Mark Under Review</a>
-                    <a href="{% url 'application_review_action' application.id 'verified' %}" class="review-btn btn-verified">Mark Verified</a>
-                    <a href="{% url 'application_review_action' application.id 'incomplete' %}" class="review-btn btn-incomplete">Mark Incomplete</a>
-                    <a href="{% url 'application_review_action' application.id 'rejected' %}" class="review-btn btn-reject" id="rejectAction">Reject</a>
+                    <button type="button" class="review-btn btn-under-review" onclick="setReviewDecision('under_review', 'pending', 'Application moved to review stage.')">
+                        Mark Under Review
+                    </button>
+
+                    <button type="button" class="review-btn btn-verified" onclick="setReviewDecision('approved', 'verified', 'Documents verified successfully. Your application has been approved.')">
+                        Mark Verified
+                    </button>
+
+                    <button type="button" class="review-btn btn-incomplete" onclick="setReviewDecision('under_review', 'incomplete', 'Application is incomplete. Additional correction or document update is required.')">
+                        Mark Incomplete
+                    </button>
+
+                    <button type="button" class="review-btn btn-reject" onclick="setReviewDecision('rejected', 'incomplete', 'Application was rejected during review.')">
+                        Reject
+                    </button>
                 </div>
             </div>
 
@@ -756,7 +767,6 @@
     const notesCounter = document.getElementById("notesCounter");
     const reviewForm = document.getElementById("reviewForm");
     const saveReviewBtn = document.getElementById("saveReviewBtn");
-    const rejectAction = document.getElementById("rejectAction");
 
     document.addEventListener("mousemove", function (event) {
         if (!reviewUpdatePage) return;
@@ -799,6 +809,28 @@
         notesCounter.textContent = count + " character" + (count === 1 ? "" : "s");
     }
 
+    function setReviewDecision(processingStatus, documentStatus, notes) {
+        if (processingStatus === "rejected") {
+            const confirmed = confirm("Are you sure you want to reject this application?");
+            if (!confirmed) return;
+        }
+
+        if (processingSelect) {
+            processingSelect.value = processingStatus;
+        }
+
+        if (documentSelect) {
+            documentSelect.value = documentStatus;
+        }
+
+        if (reviewNotes && reviewNotes.value.trim() === "") {
+            reviewNotes.value = notes;
+        }
+
+        updateStatusPreview();
+        updateNotesCounter();
+    }
+
     if (processingSelect) {
         processingSelect.addEventListener("change", updateStatusPreview);
     }
@@ -816,15 +848,6 @@
         reviewForm.addEventListener("submit", function () {
             saveReviewBtn.classList.add("loading");
             saveReviewBtn.textContent = "Saving";
-        });
-    }
-
-    if (rejectAction) {
-        rejectAction.addEventListener("click", function (event) {
-            const confirmed = confirm("Are you sure you want to reject this application?");
-            if (!confirmed) {
-                event.preventDefault();
-            }
         });
     }
 

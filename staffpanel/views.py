@@ -606,6 +606,10 @@ def application_review_list(request):
     applications = Application.objects.select_related(
         'applicant',
         'service_category'
+    ).filter(
+        processing_status__in=['submitted', 'under_review']
+    ).exclude(
+        processing_status__in=['approved', 'rejected', 'ready_for_collection']
     ).order_by('-submitted_at')
 
     context = {
@@ -623,48 +627,54 @@ def application_review_action(request, application_id, action):
 
     application = get_object_or_404(Application, id=application_id)
 
+    if application.processing_status in ['approved', 'rejected', 'ready_for_collection']:
+        messages.info(request, 'This application has already been reviewed.')
+        return redirect('application_review_list')
+
     if action == 'under_review':
         application.processing_status = 'under_review'
         application.review_notes = 'Application moved to review stage.'
-        application.save()
+        application.save(update_fields=['processing_status', 'review_notes'])
 
         notify_application_status(application)
-
         messages.success(request, 'Application marked as Under Review.')
+
+        return redirect('application_review_list')
 
     elif action == 'verified':
         application.processing_status = 'approved'
         application.document_status = 'verified'
-        application.review_notes = 'Documents verified successfully.'
-        application.save()
+        application.review_notes = 'Documents verified successfully. Your application has been approved.'
+        application.save(update_fields=['processing_status', 'document_status', 'review_notes'])
 
         notify_application_status(application)
-
         messages.success(request, 'Application marked as Verified.')
+
+        return redirect('application_review_list')
 
     elif action == 'incomplete':
         application.processing_status = 'under_review'
         application.document_status = 'incomplete'
         application.review_notes = 'Application is incomplete. Additional correction or document update is required.'
-        application.save()
+        application.save(update_fields=['processing_status', 'document_status', 'review_notes'])
 
         notify_application_status(application)
-
         messages.success(request, 'Application marked as Incomplete.')
+
+        return redirect('application_review_list')
 
     elif action == 'rejected':
         application.processing_status = 'rejected'
         application.review_notes = 'Application was rejected during review.'
-        application.save()
+        application.save(update_fields=['processing_status', 'review_notes'])
 
         notify_application_status(application)
-
         messages.success(request, 'Application rejected.')
 
-    else:
-        messages.error(request, 'Invalid review action.')
+        return redirect('application_review_list')
 
-    return redirect('application_review_update', application_id=application.id)
+    messages.error(request, 'Invalid review action.')
+    return redirect('application_review_list')
 
 
 @login_required
@@ -674,6 +684,10 @@ def application_review_update(request, application_id):
         return redirect('login')
 
     application = get_object_or_404(Application, id=application_id)
+
+    if application.processing_status in ['approved', 'rejected', 'ready_for_collection']:
+        messages.info(request, 'This application has already been reviewed.')
+        return redirect('application_review_list')
 
     if request.method == 'POST':
         processing_status = request.POST.get('processing_status', '').strip()
@@ -688,10 +702,20 @@ def application_review_update(request, application_id):
             messages.error(request, 'Please select a document status.')
             return redirect('application_review_update', application_id=application.id)
 
+        if not review_notes:
+            if processing_status == 'approved' and document_status == 'verified':
+                review_notes = 'Documents verified successfully. Your application has been approved.'
+            elif processing_status == 'rejected':
+                review_notes = 'Application was rejected during review.'
+            elif document_status == 'incomplete':
+                review_notes = 'Application is incomplete. Additional correction or document update is required.'
+            else:
+                review_notes = 'Application review status updated.'
+
         application.processing_status = processing_status
         application.document_status = document_status
         application.review_notes = review_notes
-        application.save()
+        application.save(update_fields=['processing_status', 'document_status', 'review_notes'])
 
         notify_application_status(application)
 
