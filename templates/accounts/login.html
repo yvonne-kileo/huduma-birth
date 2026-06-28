@@ -308,7 +308,7 @@
 
         <h1 class="login-title">Login</h1>
 
-        <form method="POST" class="form-area" id="loginForm" autocomplete="off"></form>
+        <form method="POST" class="form-area" id="loginForm" autocomplete="off">
             {% csrf_token %}
 
             {% if messages %}
@@ -320,13 +320,13 @@
             {% endif %}
 
             <div class="form-group">
-                <input type="text" name="username" id="username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" value="" required>
+                <input type="text" name="username" id="username" autocomplete="off" required>
                 <label for="username">Username</label>
                 <span class="field-icon">●</span>
             </div>
 
             <div class="form-group">
-                <input type="password" name="password" id="password" autocomplete="new-password" value="" required>
+                <input type="password" name="password" id="password" autocomplete="off" required>
                 <label for="password">Password</label>
                 <button type="button" class="toggle-password" id="togglePassword">Show</button>
             </div>
@@ -345,90 +345,90 @@
     const loginCard = document.getElementById("loginCard");
     const loginForm = document.getElementById("loginForm");
     const submitBtn = document.getElementById("submitBtn");
-    const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const togglePassword = document.getElementById("togglePassword");
     const inputs = document.querySelectorAll(".form-group input");
-    let userStartedTyping = false;
-
-    function clearAutoFilledLogin() {
-    if (userStartedTyping) return;
-
-    if (usernameInput) usernameInput.value = "";
-    if (passwordInput) passwordInput.value = "";
-
-    updateFilledInputs();
-}
-
-    window.addEventListener("pageshow", function () {
-        clearAutoFilledLogin();
-        setTimeout(clearAutoFilledLogin, 150);
-    });
 
     window.addEventListener("load", function () {
-        loginCard.classList.add("show");
-        clearAutoFilledLogin();
-        setTimeout(clearAutoFilledLogin, 300);
+        if (loginCard) {
+            loginCard.classList.add("show");
+        }
+
+        updateFilledInputs();
     });
 
     document.addEventListener("mousemove", function (event) {
+        if (!loginPage) return;
+
         const x = Math.round((event.clientX / window.innerWidth) * 100);
         const y = Math.round((event.clientY / window.innerHeight) * 100);
+
         loginPage.style.setProperty("--mouse-x", x + "%");
         loginPage.style.setProperty("--mouse-y", y + "%");
     });
 
     function updateFilledInputs() {
         inputs.forEach(function (input) {
-            input.addEventListener("input", function () {
-                userStartedTyping = true;
-                updateFilledInputs();
-            });
+            const group = input.closest(".form-group");
 
-            input.addEventListener("blur", updateFilledInputs);
+            if (!group) return;
 
-            input.addEventListener("focus", function () {
-                input.closest(".form-group").classList.add("filled");
-            });
+            if (input.value.trim() !== "") {
+                group.classList.add("filled");
+            } else {
+                group.classList.remove("filled");
+            }
         });
     }
 
     inputs.forEach(function (input) {
         input.addEventListener("input", updateFilledInputs);
         input.addEventListener("blur", updateFilledInputs);
+
         input.addEventListener("focus", function () {
-            input.closest(".form-group").classList.add("filled");
+            const group = input.closest(".form-group");
+            if (group) {
+                group.classList.add("filled");
+            }
         });
     });
 
-    togglePassword.addEventListener("click", function () {
-        const showing = passwordInput.type === "text";
-        passwordInput.type = showing ? "password" : "text";
-        togglePassword.textContent = showing ? "Show" : "Hide";
-    });
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener("click", function () {
+            const showing = passwordInput.type === "text";
 
-    submitBtn.addEventListener("click", function (event) {
-        const circle = document.createElement("span");
-        const diameter = Math.max(submitBtn.clientWidth, submitBtn.clientHeight);
-        const radius = diameter / 2;
-        const rect = submitBtn.getBoundingClientRect();
+            passwordInput.type = showing ? "password" : "text";
+            togglePassword.textContent = showing ? "Show" : "Hide";
+        });
+    }
 
-        circle.style.width = circle.style.height = diameter + "px";
-        circle.style.left = event.clientX - rect.left - radius + "px";
-        circle.style.top = event.clientY - rect.top - radius + "px";
-        circle.classList.add("ripple");
+    if (submitBtn) {
+        submitBtn.addEventListener("click", function (event) {
+            const circle = document.createElement("span");
+            const diameter = Math.max(submitBtn.clientWidth, submitBtn.clientHeight);
+            const radius = diameter / 2;
+            const rect = submitBtn.getBoundingClientRect();
 
-        const oldRipple = submitBtn.querySelector(".ripple");
-        if (oldRipple) {
-            oldRipple.remove();
-        }
+            circle.style.width = circle.style.height = diameter + "px";
+            circle.style.left = event.clientX - rect.left - radius + "px";
+            circle.style.top = event.clientY - rect.top - radius + "px";
+            circle.classList.add("ripple");
 
-        submitBtn.appendChild(circle);
-    });
+            const oldRipple = submitBtn.querySelector(".ripple");
 
-    loginForm.addEventListener("submit", function () {
-        submitBtn.classList.add("loading");
-        submitBtn.textContent = "Logging in";
-    });
+            if (oldRipple) {
+                oldRipple.remove();
+            }
+
+            submitBtn.appendChild(circle);
+        });
+    }
+
+    if (loginForm && submitBtn) {
+        loginForm.addEventListener("submit", function () {
+            submitBtn.classList.add("loading");
+            submitBtn.textContent = "Logging in";
+        });
+    }
 </script>
 {% endblock %}
