@@ -1370,6 +1370,104 @@
             box-shadow: 0 18px 34px rgba(0, 122, 77, 0.24);
         }
 
+    .queue-preview-card {
+        margin-bottom: 18px;
+        padding: 20px;
+        border-radius: 24px;
+        background: #ffffff;
+        border: 1px solid #e7edf0;
+        box-shadow: 0 16px 38px rgba(16, 24, 40, 0.06);
+    }
+
+    .queue-preview-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .queue-preview-label {
+        display: block;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 6px;
+    }
+
+    .queue-preview-top h3 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.35rem;
+        font-weight: 950;
+    }
+
+    .queue-preview-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #eaf8f1;
+        color: #007a4d;
+        font-size: 0.8rem;
+        font-weight: 950;
+    }
+
+    .queue-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .queue-preview-stat {
+        padding: 14px;
+        border-radius: 18px;
+        background: #f9fbfc;
+        border: 1px solid #e7edf0;
+    }
+
+    .queue-preview-stat span {
+        display: block;
+        color: #667085;
+        font-size: 0.78rem;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .queue-preview-stat strong {
+        display: block;
+        color: #101828;
+        font-size: 1.25rem;
+        font-weight: 950;
+    }
+
+    .queue-preview-advice {
+        margin: 0;
+        color: #344054;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        font-weight: 700;
+    }
+
+    .queue-preview-note {
+        margin: 10px 0 0;
+        color: #667085;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        font-weight: 650;
+    }
+
+    @media (max-width: 680px) {
+        .queue-preview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
 </style>
 {% endblock %}
 
@@ -1566,6 +1664,41 @@
                     </div>
 
                     <div class="queue-body">
+
+                        <div class="queue-preview-card" id="queue-preview-card" style="display: none;">
+                            <div class="queue-preview-top">
+                                <div>
+                                    <span class="queue-preview-label">Current Huduma Queue Load</span>
+                                    <h3 id="queue-preview-load">Checking...</h3>
+                                </div>
+                                <span class="queue-preview-pill" id="queue-preview-pill">Live</span>
+                            </div>
+
+                            <div class="queue-preview-grid">
+                                <div class="queue-preview-stat">
+                                    <span>Checked-in Applicants</span>
+                                    <strong id="queue-preview-active">0</strong>
+                                </div>
+
+                                <div class="queue-preview-stat">
+                                    <span>Waiting Applicants</span>
+                                    <strong id="queue-preview-waiting">0</strong>
+                                </div>
+
+                                <div class="queue-preview-stat">
+                                    <span>Estimated Delay</span>
+                                    <strong><span id="queue-preview-wait">0</span> min</strong>
+                                </div>
+                            </div>
+
+                            <p class="queue-preview-advice" id="queue-preview-advice">
+                                Queue information will appear here.
+                            </p>
+
+                            <p class="queue-preview-note">
+                                Exact queue position will only appear after you confirm arrival at Huduma Centre.
+                            </p>
+                        </div>
                         <div class="queue-stats">
                             <div class="queue-stat">
                                 <span>Position</span>
@@ -1990,22 +2123,67 @@ function renderLargeQueueView(data) {
     caption.textContent = 'Large queue mode.';
 }
 
+
+function updateQueuePreview(data) {
+    const previewCard = document.getElementById("queue-preview-card");
+    const previewLoad = document.getElementById("queue-preview-load");
+    const previewPill = document.getElementById("queue-preview-pill");
+    const previewActive = document.getElementById("queue-preview-active");
+    const previewWaiting = document.getElementById("queue-preview-waiting");
+    const previewWait = document.getElementById("queue-preview-wait");
+    const previewAdvice = document.getElementById("queue-preview-advice");
+
+    if (!previewCard || !data.queue_preview) return;
+
+    if (data.arrival_confirmed) {
+        previewCard.style.display = "none";
+        return;
+    }
+
+    previewCard.style.display = "block";
+
+    previewLoad.textContent = data.queue_preview.queue_load + " Queue";
+    previewPill.textContent = "Before Arrival";
+    previewActive.textContent = data.queue_preview.checked_in_active_count ?? 0;
+    previewWaiting.textContent = data.queue_preview.checked_in_waiting_count ?? 0;
+    previewWait.textContent = data.queue_preview.preview_estimated_wait ?? 0;
+    previewAdvice.textContent = data.queue_preview.queue_advice || "Queue information will appear here.";
+}
+
 function applyQueueData(data) {
     if (data.error) return;
 
+    updateQueuePreview(data);
+
+    const showPersonalQueue = data.show_personal_queue === true;
+
     document.getElementById('ticket-number').textContent = data.ticket_number || '-';
     document.getElementById('current-status').textContent = data.current_status_display || '-';
-    document.getElementById('wait-time').textContent = data.estimated_wait_minutes ?? '-';
-    document.getElementById('wait-time-map').textContent = data.estimated_wait_minutes ?? '-';
-    document.getElementById('position').textContent = data.position || '-';
-    document.getElementById('position-side').textContent = data.position || '-';
-    document.getElementById('people-ahead').textContent = data.people_ahead ?? 0;
-    document.getElementById('queue-total').textContent = data.queue_total ?? 0;
     document.getElementById('map-current-status').textContent = data.current_status_display || '-';
+
+    if (showPersonalQueue) {
+        document.getElementById('wait-time').textContent = data.estimated_wait_minutes ?? '-';
+        document.getElementById('wait-time-map').textContent = data.estimated_wait_minutes ?? '-';
+        document.getElementById('position').textContent = data.position || '-';
+        document.getElementById('position-side').textContent = data.position || '-';
+        document.getElementById('people-ahead').textContent = data.people_ahead ?? 0;
+        document.getElementById('queue-total').textContent = data.queue_total ?? 0;
+    } else {
+        document.getElementById('wait-time').textContent = '-';
+        document.getElementById('wait-time-map').textContent = '-';
+        document.getElementById('position').textContent = '-';
+        document.getElementById('position-side').textContent = '-';
+        document.getElementById('people-ahead').textContent = '-';
+        document.getElementById('queue-total').textContent = '-';
+    }
 
     const peopleAheadText = document.getElementById('people-ahead-text');
     if (peopleAheadText) {
-        peopleAheadText.textContent = (data.people_ahead ?? 0) > 0 ? `${data.people_ahead} ahead` : 'Updates show here.';
+        if (showPersonalQueue) {
+            peopleAheadText.textContent = (data.people_ahead ?? 0) > 0 ? `${data.people_ahead} ahead` : 'You are next in line.';
+        } else {
+            peopleAheadText.textContent = 'Check current client traffic above before confirming arrival.';
+        }
     }
 
     setStageState(data.current_status);
@@ -2014,23 +2192,22 @@ function applyQueueData(data) {
     const largeView = document.getElementById('large-queue-view');
 
     const shouldUseLargeQueueView =
-    data.current_status === 'waiting' &&
-    (
-        data.large_queue_mode ||
-        (data.queue_total || 0) > 12 ||
-        (data.people_ahead || 0) > 6
-    );
-
+        showPersonalQueue &&
+        data.current_status === 'waiting' &&
+        (
+            data.large_queue_mode ||
+            (data.queue_total || 0) > 12 ||
+            (data.people_ahead || 0) > 6
+        );
 
     if (shouldUseLargeQueueView) {
-    smallView.style.display = 'none';
-    largeView.style.display = 'block';
-    renderLargeQueueView(data);
-
+        smallView.style.display = 'none';
+        largeView.style.display = 'block';
+        renderLargeQueueView(data);
     } else {
-    smallView.style.display = 'block';
-    largeView.style.display = 'none';
-    renderSmallQueueMap(data);
+        smallView.style.display = 'block';
+        largeView.style.display = 'none';
+        renderSmallQueueMap(data);
     }
 
     if (data.arrival_confirmed || data.current_status !== 'tracking') {
@@ -2039,7 +2216,10 @@ function applyQueueData(data) {
     }
 
     let message = '';
-    if (data.current_status === 'waiting') {
+
+    if (!showPersonalQueue && data.current_status === 'tracking') {
+        message = '<p>Check the current queue load above. Your exact queue position will appear after you confirm arrival.</p>';
+    } else if (data.current_status === 'waiting') {
         message = '<p>Waiting.</p>';
     } else if (data.current_status === 'called') {
         message = '<p>Called. Proceed to the counter.</p>';
@@ -2047,6 +2227,8 @@ function applyQueueData(data) {
         message = '<p>In service.</p>';
     } else if (data.current_status === 'completed') {
         message = '<p>Completed.</p>';
+    } else if (data.current_status === 'skipped' && data.skipped_message) {
+        message = `<p>${data.skipped_message}</p>`;
     }
 
     const msg = document.getElementById('queue-message');

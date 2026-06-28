@@ -13,8 +13,13 @@ def get_next_applicant_route(user):
 
     applicant = user.applicant_profile
 
-    application = Application.objects.filter(applicant=applicant).order_by('-submitted_at').first()
-    appointment = Appointment.objects.filter(applicant=applicant).order_by('-appointment_date', '-appointment_time').first()
+    application = Application.objects.filter(
+        applicant=applicant
+    ).order_by('-submitted_at').first()
+
+    appointment = Appointment.objects.filter(
+        applicant=applicant
+    ).order_by('-appointment_date', '-appointment_time').first()
 
     if not application:
         return 'ecitizen_login'
@@ -26,6 +31,20 @@ def get_next_applicant_route(user):
         return 'huduma_login'
 
     return 'applicant_dashboard'
+
+
+def is_staff_account(user):
+    return ServiceOfficer.objects.filter(user=user).exists()
+
+
+def redirect_user_by_role(user):
+    if is_staff_account(user):
+        return redirect('staff_dashboard')
+
+    if hasattr(user, 'applicant_profile'):
+        return redirect(get_next_applicant_route(user))
+
+    return None
 
 
 def applicant_register(request):
@@ -87,11 +106,10 @@ def applicant_register(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        if hasattr(request.user, 'applicant_profile'):
-            return redirect(get_next_applicant_route(request.user))
+        role_redirect = redirect_user_by_role(request.user)
 
-        if ServiceOfficer.objects.filter(user=request.user).exists():
-            return redirect('staff_dashboard')
+        if role_redirect:
+            return role_redirect
 
         logout(request)
         messages.error(request, 'This account is not registered as an applicant or staff account.')
@@ -104,13 +122,11 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if hasattr(user, 'applicant_profile'):
-                login(request, user)
-                return redirect(get_next_applicant_route(user))
+            role_redirect = redirect_user_by_role(user)
 
-            if ServiceOfficer.objects.filter(user=user).exists():
-                messages.error(request, 'Use staff login.')
-                return redirect('staff_login')
+            if role_redirect:
+                login(request, user)
+                return role_redirect
 
             messages.error(request, 'This account is not registered as an applicant or staff account.')
             return redirect('login')
@@ -121,38 +137,7 @@ def login_view(request):
 
 
 def staff_login_view(request):
-    if request.user.is_authenticated:
-        if ServiceOfficer.objects.filter(user=request.user).exists():
-            return redirect('staff_dashboard')
-
-        if hasattr(request.user, 'applicant_profile'):
-            return redirect(get_next_applicant_route(request.user))
-
-        logout(request)
-        messages.error(request, 'This account is not registered as a staff account.')
-        return redirect('staff_login')
-
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '').strip()
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            if hasattr(user, 'applicant_profile'):
-                messages.error(request, 'Applicants must use applicant login.')
-                return redirect('login')
-
-            if not ServiceOfficer.objects.filter(user=user).exists():
-                messages.error(request, 'This account is not registered as a staff account.')
-                return redirect('staff_login')
-
-            login(request, user)
-            return redirect('staff_dashboard')
-
-        messages.error(request, 'Invalid username or password.')
-
-    return render(request, 'accounts/staff_login.html')
+    return redirect('login')
 
 
 def logout_view(request):

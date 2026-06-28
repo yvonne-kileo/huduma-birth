@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Applicant Login{% endblock %}
+{% block title %}Login{% endblock %}
 {% block page_heading %}{% endblock %}
 {% block page_subheading %}{% endblock %}
 
@@ -302,13 +302,13 @@
             <div class="brand-mark">HB</div>
             <div>
                 <div class="brand-title">Huduma Center</div>
-                <div class="brand-subtitle">For Every Citizen</div>
+                <div class="brand-subtitle">Access Portal</div>
             </div>
         </div>
 
         <h1 class="login-title">Login</h1>
 
-        <form method="POST" class="form-area" id="loginForm">
+        <form method="POST" class="form-area" id="loginForm" autocomplete="off"></form>
             {% csrf_token %}
 
             {% if messages %}
@@ -320,13 +320,13 @@
             {% endif %}
 
             <div class="form-group">
-                <input type="text" name="username" id="username" autocomplete="username" required>
+                <input type="text" name="username" id="username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" value="" required>
                 <label for="username">Username</label>
                 <span class="field-icon">●</span>
             </div>
 
             <div class="form-group">
-                <input type="password" name="password" id="password" autocomplete="current-password" required>
+                <input type="password" name="password" id="password" autocomplete="new-password" value="" required>
                 <label for="password">Password</label>
                 <button type="button" class="toggle-password" id="togglePassword">Show</button>
             </div>
@@ -345,13 +345,30 @@
     const loginCard = document.getElementById("loginCard");
     const loginForm = document.getElementById("loginForm");
     const submitBtn = document.getElementById("submitBtn");
+    const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const togglePassword = document.getElementById("togglePassword");
     const inputs = document.querySelectorAll(".form-group input");
+    let userStartedTyping = false;
+
+    function clearAutoFilledLogin() {
+    if (userStartedTyping) return;
+
+    if (usernameInput) usernameInput.value = "";
+    if (passwordInput) passwordInput.value = "";
+
+    updateFilledInputs();
+}
+
+    window.addEventListener("pageshow", function () {
+        clearAutoFilledLogin();
+        setTimeout(clearAutoFilledLogin, 150);
+    });
 
     window.addEventListener("load", function () {
         loginCard.classList.add("show");
-        updateFilledInputs();
+        clearAutoFilledLogin();
+        setTimeout(clearAutoFilledLogin, 300);
     });
 
     document.addEventListener("mousemove", function (event) {
@@ -363,13 +380,16 @@
 
     function updateFilledInputs() {
         inputs.forEach(function (input) {
-            const group = input.closest(".form-group");
+            input.addEventListener("input", function () {
+                userStartedTyping = true;
+                updateFilledInputs();
+            });
 
-            if (input.value.trim() !== "") {
-                group.classList.add("filled");
-            } else {
-                group.classList.remove("filled");
-            }
+            input.addEventListener("blur", updateFilledInputs);
+
+            input.addEventListener("focus", function () {
+                input.closest(".form-group").classList.add("filled");
+            });
         });
     }
 

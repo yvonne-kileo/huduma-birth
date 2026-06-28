@@ -269,16 +269,17 @@ def applicant_queue_status(request):
     )
 
     # Queue preview before arrival confirmation.
-    # This helps the applicant know if the centre is crowded before leaving home.
-    checked_in_waiting_count = sum(
-        1 for ticket in active_queue
-        if ticket.current_status == 'waiting'
-    )
+    # This counts everyone already checked in directly from the database,
+    # even before the current applicant confirms arrival.
+    checked_in_waiting_count = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status='waiting'
+    ).count()
 
-    checked_in_active_count = sum(
-        1 for ticket in active_queue
-        if ticket.current_status in ['waiting', 'called', 'in_service']
-    )
+    checked_in_active_count = QueueTicket.objects.filter(
+        arrival_confirmed=True,
+        current_status__in=['waiting', 'called', 'in_service']
+    ).count()
 
     preview_estimated_wait = checked_in_waiting_count * AVERAGE_SERVICE_MINUTES
 
@@ -351,6 +352,7 @@ def applicant_queue_status(request):
         'grace_seconds_remaining': grace_seconds_remaining,
 
         # Queue preview before confirming arrival.
+        # This is what the frontend will use to show overcrowding/client traffic.
         'queue_preview': {
             'queue_load': queue_load,
             'checked_in_active_count': checked_in_active_count,
