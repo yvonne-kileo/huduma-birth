@@ -10,7 +10,7 @@ from django.utils import timezone
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from queueing.models import Application, QueueTicket, QueueStatusHistory, Notification
+from queueing.models import Application, QueueTicket, QueueStatusHistory, Notification, ServiceFeedback
 
 
 CALL_GRACE_MINUTES = 3
@@ -727,3 +727,22 @@ def application_review_update(request, application_id):
     }
 
     return render(request, 'staffpanel/application_review_update.html', context)
+
+@login_required
+def service_feedback_list(request):
+    if not hasattr(request.user, 'service_officer_profile'):
+        messages.error(request, 'You do not have staff access.')
+        return redirect('login')
+
+    feedbacks = ServiceFeedback.objects.select_related(
+        'applicant',
+        'application',
+        'appointment',
+        'queue_ticket'
+    ).order_by('-created_at')
+
+    context = {
+        'feedbacks': feedbacks,
+    }
+
+    return render(request, 'staffpanel/service_feedback_list.html', context)

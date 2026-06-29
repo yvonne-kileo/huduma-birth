@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Feedback{% endblock %}
+{% block page_heading %}Service Feedback{% endblock %}
+{% block page_subheading %}View applicant ratings and comments.{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'staff_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+<a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-card">
+    <div class="card-header">
+        <div>
+            <h3>Applicant Feedback</h3>
+            <p>Feedback submitted after applicants have been served.</p>
+        </div>
+    </div>
+
+    {% if feedbacks %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedbacks %}
+                    <tr>
+                        <td>{{ feedback.applicant.full_name }}</td>
+                        <td>{{ feedback.rating }}/5</td>
+                        <td>
+                            {% if feedback.comment %}
+                                {{ feedback.comment }}
+                            {% else %}
+                                No comment provided
+                            {% endif %}
+                        </td>
+                        <td>{{ feedback.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No service feedback has been submitted yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
