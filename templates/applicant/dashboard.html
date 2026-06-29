@@ -1951,11 +1951,13 @@ function moveMarkerPercent(x, y) {
 function setCounterVisualState(mode) {
     const statusText = document.getElementById('counter-status-text');
     const pill = document.getElementById('counter-pill');
+    const marker = document.getElementById('queue-marker');
     const markerCore = document.querySelector('#queue-marker .delivery-marker-core');
     const markerTag = document.querySelector('#queue-marker .delivery-marker-tag');
 
-    if (!statusText || !pill || !markerCore || !markerTag) return;
+    if (!statusText || !pill || !marker || !markerCore || !markerTag) return;
 
+    marker.style.display = 'block';
     markerCore.classList.remove('completed');
     markerTag.classList.remove('completed');
 
@@ -1963,23 +1965,25 @@ function setCounterVisualState(mode) {
         statusText.textContent = 'Proceed';
         pill.textContent = 'NEXT';
         markerTag.textContent = 'YOU';
+
     } else if (mode === 'in_service') {
         statusText.textContent = 'Now serving';
         pill.textContent = 'SERVING';
         markerTag.textContent = 'YOU';
+
     } else if (mode === 'completed') {
         statusText.textContent = 'Completed';
         pill.textContent = 'DONE';
-        markerCore.classList.add('completed');
-        markerTag.classList.add('completed');
-        markerTag.textContent = 'DONE';
+
+        // Hide the green dot after service is completed
+        marker.style.display = 'none';
+
     } else {
         statusText.textContent = 'Waiting';
         pill.textContent = 'WAITING';
         markerTag.textContent = 'YOU';
     }
 }
-
 function renderSmallQueueMap(data) {
     const stopsContainer = document.getElementById('queue-stops');
     const caption = document.getElementById('map-caption');
