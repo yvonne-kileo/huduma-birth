@@ -1467,6 +1467,30 @@
             grid-template-columns: 1fr;
         }
     }
+    .feedback-card {
+        margin-top: 20px;
+    }
+
+    .feedback-form {
+        display: grid;
+        gap: 12px;
+    }
+
+    .feedback-form select,
+    .feedback-form textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-family: inherit;
+    }
+
+    .feedback-submitted {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 14px;
+        padding: 16px;
+    }
 
 </style>
 {% endblock %}
@@ -1843,6 +1867,46 @@
                         </div>
                     </div>
                 </section>
+                {% if can_give_feedback %}
+                <div class="dashboard-card feedback-card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Service Feedback</h3>
+                            <p>Rate the service you received today.</p>
+                        </div>
+                    </div>
+
+                    {% if service_feedback %}
+                    <div class="feedback-submitted">
+                        <strong>Feedback Submitted</strong>
+                        <p>You rated this service {{ service_feedback.rating }}/5.</p>
+
+                        {% if service_feedback.comment %}
+                        <p>{{ service_feedback.comment }}</p>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <form method="POST" action="{% url 'submit_service_feedback' queue_ticket.id %}" class="feedback-form">
+                        {% csrf_token %}
+
+                        <label for="rating">Rating</label>
+                        <select name="rating" id="rating" required>
+                            <option value="">Select rating</option>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="1">1 - Very Poor</option>
+                        </select>
+
+                        <label for="comment">Comment</label>
+                        <textarea name="comment" id="comment" rows="4" placeholder="Write your feedback here..."></textarea>
+
+                        <button type="submit" class="btn-primary">Submit Feedback</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 <div class="note-box reveal">
                     Arrive 15 minutes early for your Huduma appointment.

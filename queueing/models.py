@@ -254,3 +254,33 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.applicant.full_name} - {self.title}"
+
+class ServiceFeedback(models.Model):
+    queue_ticket = models.OneToOneField(
+        'QueueTicket',
+        on_delete=models.CASCADE,
+        related_name='feedback'
+    )
+    applicant = models.ForeignKey(
+        'accounts.ApplicantProfile',
+        on_delete=models.CASCADE,
+        related_name='service_feedbacks'
+    )
+    application = models.ForeignKey(
+        'Application',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    appointment = models.ForeignKey(
+        'Appointment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Feedback from {self.applicant.full_name} - {self.rating}/5'

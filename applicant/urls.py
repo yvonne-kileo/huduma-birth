@@ -10,4 +10,5 @@ urlpatterns = [
         views.download_application_invoice,
         name='download_application_invoice'
     ),
+    path('feedback/<int:ticket_id>/', views.submit_service_feedback, name='submit_service_feedback'),
 ]

@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-from queueing.models import Appointment, Application, QueueTicket, QueueStatusHistory, Notification
+from queueing.models import Appointment, Application, QueueTicket, QueueStatusHistory, Notification, ServiceFeedback
 
 
 AVERAGE_SERVICE_MINUTES = 10
@@ -105,16 +105,16 @@ def applicant_dashboard(request):
     application_stage = get_applicant_stage(application, appointment)
 
     invoice_number = get_application_display_code(
-    application,
-    ['invoice_number', 'invoice_no', 'ecitizen_invoice_number', 'application_invoice_number'],
-    'INV'
-)
+        application,
+        ['invoice_number', 'invoice_no', 'ecitizen_invoice_number', 'application_invoice_number'],
+        'INV'
+    )
 
     receipt_number = get_application_display_code(
-    application,
-    ['receipt_number', 'receipt_no', 'ecitizen_receipt_number', 'payment_receipt_number'],
-    'RCT'
-)
+        application,
+        ['receipt_number', 'receipt_no', 'ecitizen_receipt_number', 'payment_receipt_number'],
+        'RCT'
+    )
 
     queue_position = None
     people_ahead = 0
@@ -132,6 +132,20 @@ def applicant_dashboard(request):
             queue_ticket.estimated_wait_minutes = people_ahead * AVERAGE_SERVICE_MINUTES
             queue_ticket.save(update_fields=['estimated_wait_minutes'])
 
+    # Feedback section
+    service_feedback = None
+    can_give_feedback = False
+
+    if queue_ticket:
+        ticket_status = (queue_ticket.current_status or '').lower()
+
+        if ticket_status in ['done', 'completed']:
+            can_give_feedback = True
+
+        service_feedback = ServiceFeedback.objects.filter(
+            queue_ticket=queue_ticket
+        ).first()
+
     context = {
         'applicant': applicant,
         'appointment': appointment,
@@ -142,10 +156,13 @@ def applicant_dashboard(request):
         'people_ahead': people_ahead,
         'invoice_number': invoice_number,
         'receipt_number': receipt_number,
+
+        # Feedback context
+        'can_give_feedback': can_give_feedback,
+        'service_feedback': service_feedback,
     }
 
     return render(request, 'applicant/dashboard.html', context)
-
 
 @login_required
 def confirm_arrival(request, ticket_id):
@@ -699,3 +716,79 @@ def download_application_invoice(request, application_id):
     response.write(pdf)
 
     return response
+
+@login_required
+def submit_service_feedback(request, ticket_id):
+    if not hasattr(request.user, 'applicant_profile'):
+        messages.error(request, 'You must be logged in as an applicant to submit feedback.')
+        return redirect('login')
+
+    applicant = request.user.applicant_profile
+    queue_ticket = get_object_or_404(QueueTicket, id=ticket_id)
+
+    # Safety check: make sure this ticket belongs to the logged-in applicant
+    ticket_owner_valid = False
+
+    if getattr(queue_ticket, 'applicant_id', None) == applicant.id:
+        ticket_owner_valid = True
+
+    appointment = getattr(queue_ticket, 'appointment', None)
+    if appointment and getattr(appointment, 'applicant_id', None) == applicant.id:
+        ticket_owner_valid = True
+
+    if not ticket_owner_valid:
+        messages.error(request, 'You cannot submit feedback for this queue ticket.')
+        return redirect('applicant_dashboard')
+
+    ticket_status = (queue_ticket.current_status or '').lower()
+
+    if ticket_status not in ['done', 'completed']:
+        messages.error(request, 'You can only submit feedback after your service is completed.')
+        return redirect('applicant_dashboard')
+
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment', '').strip()
+
+        if not rating:
+            messages.error(request, 'Please select a rating.')
+            return redirect('applicant_dashboard')
+
+        try:
+            rating = int(rating)
+        except ValueError:
+            messages.error(request, 'Invalid rating selected.')
+            return redirect('applicant_dashboard')
+
+        if rating < 1 or rating > 5:
+            messages.error(request, 'Rating must be between 1 and 5.')
+            return redirect('applicant_dashboard')
+
+        application = getattr(queue_ticket, 'application', None)
+        appointment = getattr(queue_ticket, 'appointment', None)
+
+        if not application:
+            application = Application.objects.filter(
+                applicant=applicant
+            ).order_by('-submitted_at').first()
+
+        if not appointment:
+            appointment = Appointment.objects.filter(
+                applicant=applicant
+            ).order_by('-appointment_date', '-appointment_time').first()
+
+        ServiceFeedback.objects.update_or_create(
+            queue_ticket=queue_ticket,
+            defaults={
+                'applicant': applicant,
+                'application': application,
+                'appointment': appointment,
+                'rating': rating,
+                'comment': comment,
+            }
+        )
+
+        messages.success(request, 'Thank you. Your feedback has been submitted successfully.')
+        return redirect('applicant_dashboard')
+
+    return redirect('applicant_dashboard')
